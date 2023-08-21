@@ -194,6 +194,7 @@ router.post('/search', urlencodedParser, async function (req, res) {
     topPage:topPage,
     viewDate:new Date(),
   })
+  console.log(extractor)
   db.collection('history-search').insertOne({
     event:'search/',
     searchmode:searchmode,
