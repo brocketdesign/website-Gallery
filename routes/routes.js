@@ -118,30 +118,3 @@ router.get('/_history',async function(req, res) {
   }
 
 });
-
-//DB UTILIZATION
-function HowToUseMongoDB (){
-
-  let myCollection = db.collection('meigara')
-
-  //Find all documents
-  myCollection.find().toArray((err, results) => { console.log(results); });
-  //Find a document
-  myCollection.find({'コード':code}).sort({'コード':1}).toArray(function(err, meigara) {})
-  myCollection.findOne({'コード':code}, (err, meigara) => {})
-  //Insert data to a collection
-  myCollection.insertOne({ name: 'Web Security' }, (err, result) => { });
-  myCollection.insertMany([
-    { name: 'Web Design' },
-    { name: 'Distributed Database' },
-    { name: 'Artificial Intelligence' }
-  ], (err, results) => { });
-  //Update an existing document
-  myCollection.updateOne({ name: 'Web Design' }, { $set: { name: 'Web Analytics' } }, (err, result) => {  console.log(result);  });
-  //Delete a document
-  myCollection.deleteOne({ name: 'Distributed Database' }, (err, result) => { console.log(result); });
-}
-
-module.exports = router;
-
-module.exports = router;

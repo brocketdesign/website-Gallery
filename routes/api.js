@@ -274,103 +274,71 @@ router.post('/isviewed',urlencodedParser,async (req, res) => {
   });
 });
 //CONTROL DB
-router.post('/:myAction/:elementType',urlencodedParser,async (req, res) => {
+router.post('/:myAction/:elementType', urlencodedParser, (req, res) => {
   const db = req.app.locals.db;
-  let myAction = req.params.myAction
-  let elementType = req.params.elementType
-  console.log({
-    myAction:myAction,
-    elementType:elementType,
-    elementTypeID:req.query.elementTypeID,
-    req:req.body
-  })
-  let resID = 'back'
+  let myAction = req.params.myAction;
+  let elementType = req.params.elementType;
+  let myCollection = db.collection(elementType);
+  let resID = 'back';
   var date = new Date();
-  var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' +  date.getFullYear();
-  if( myAction == 'editAll'){
-    let myCollection = db.collection(elementType)
-    return await new Promise((resolve,reject)=>{
-      myCollection.remove({},()=>{
-        resolve()
-      })
-    })
-    let data = []
-    try{
-      req.body.el.forEach(element => {
-        data.push({el:element})
-      });
-    }catch{
-      data.push(req.body)
-    }
-    //console.log(data)
-    return await new Promise((resolve,reject)=>{
-      myCollection.insertMany(data, (err, results) => {
-        resolve()
-      });
-    })
-  }//editAll
+  var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
 
-  if( myAction == 'addone'){
-    let myCollection = db.collection(elementType)
-    resID = await new Promise((resolve,reject)=>{
-      myCollection.insertOne(req.body, (err, result) => { resolve(result.insertedId) });
-    })
-  }//ADD ONE
+  console.log({
+    myAction: myAction,
+    elementType: elementType,
+    elementTypeID: req.query.elementTypeID,
+    req: req.body
+  });
 
-  if( myAction == 'edit'){
-    if(req.query.elementTypeID){
-      let myCollection = db.collection(elementType)
-      return await new Promise((resolve,reject)=>{
-        myCollection.deleteOne({ '_id': new ObjectId(req.query.elementTypeID) }, (err, result) => {});
-        myCollection.insertOne(req.body , (err, result) => {
-          resolve()
-         });
-      })
-    }else{
-      console.log('elementTypeID not founded')
-    }
-  };//update ONE
-  if( myAction == 'update'){
-    let myCollection = db.collection(elementType)
-    if(req.query.elementTypeID){
-      await new Promise((resolve,reject)=>{
-        myCollection.updateOne({ '_id': new ObjectId(req.query.elementTypeID) }, { $set: req.body }, (err, result) => {
-          resolve()
+  const handleAction = () => {
+    if (myAction == 'editAll') {
+      return myCollection.remove({})
+        .then(() => {
+          let data = [];
+          try {
+            req.body.el.forEach(element => {
+              data.push({ el: element });
+            });
+          } catch {
+            data.push(req.body);
+          }
+          return myCollection.insertMany(data);
         });
-      })
-    }else{
-      console.log('elementTypeID not founded')
     }
-  };//update ONE
 
-  if( myAction == 'editField'){
-    if(req.query.elementTypeID){
-      let myCollection = db.collection(elementType)
-       await new Promise((resolve,reject)=>{
-        myCollection.updateOne({ '_id': new ObjectId(req.query.elementTypeID) }, { $unset: { [req.body.field]: "" } }, {upsert:true}, (err, result) => {
-          resolve()
-         });
-      })
-    }else{
-      console.log('elementTypeID not founded')
+    if (myAction == 'addone') {
+      return myCollection.insertOne(req.body)
+        .then(result => { resID = result.insertedId; });
     }
-  };//EDIT ONE
 
-  if( myAction == 'delete'){
-    if(req.query.elementTypeID){
-      let myCollection = db.collection(elementType)
-       await new Promise((resolve,reject)=>{
-        myCollection.deleteOne({ '_id': new ObjectId(req.query.elementTypeID) }, (err, result) => {
-          resolve()
-         });
-      })
-    }else{
-      console.log('genbaID not founded')
+    if (myAction == 'edit' && req.query.elementTypeID) {
+      return myCollection.deleteOne({ '_id': new ObjectId(req.query.elementTypeID) })
+        .then(() => myCollection.insertOne(req.body));
     }
-  }//DELETE
-  res.send(resID)
 
+    if (myAction == 'update' && req.query.elementTypeID) {
+      return myCollection.updateOne({ '_id': new ObjectId(req.query.elementTypeID) }, { $set: req.body });
+    }
+
+    if (myAction == 'editField' && req.query.elementTypeID) {
+      return myCollection.updateOne({ '_id': new ObjectId(req.query.elementTypeID) }, { $unset: { [req.body.field]: "" } }, { upsert: true });
+    }
+
+    if (myAction == 'delete' && req.query.elementTypeID) {
+      return myCollection.deleteOne({ '_id': new ObjectId(req.query.elementTypeID) });
+    }
+  };
+
+  handleAction()
+    .then(() => {
+      res.send(resID);
+    })
+    .catch(err => {
+      console.error(err);
+      res.status(500).send('Internal Server Error');
+    });
 });
+
 router.get('/favicon',urlencodedParser,async (req, res) => {
   const db = req.app.locals.db;
   let domain = req.query.domain
@@ -454,28 +422,5 @@ if( isLogin != undefined){
     }
 }
 });
-
-//DB UTILIZATION
-function HowToUseMongoDB (){
-
-    let myCollection = db.collection('meigara')
-
-    //Find all documents
-    myCollection.find().toArray((err, results) => { console.log(results); });
-    //Find a document
-    myCollection.find({'コード':code}).sort({'コード':1}).toArray(function(err, meigara) {})
-    myCollection.findOne({'コード':code}, (err, meigara) => {})
-    //Insert data to a collection
-    myCollection.insertOne({ name: 'Web Security' }, (err, result) => { });
-    myCollection.insertMany([
-      { name: 'Web Design' },
-      { name: 'Distributed Database' },
-      { name: 'Artificial Intelligence' }
-    ], (err, results) => { });
-    //Update an existing document
-    myCollection.updateOne({ name: 'Web Design' }, { $set: { name: 'Web Analytics' } }, (err, result) => {  console.log(result);  });
-    //Delete a document
-    myCollection.deleteOne({ name: 'Distributed Database' }, (err, result) => { console.log(result); });
-  }
 
 module.exports = router;
