@@ -1,4 +1,4 @@
-# Website Gallery
+# Reddit Website Gallery
 
 Website Gallery is an image gallery application that provides infinite scrolling functionality for Reddit. It's designed to offer a seamless browsing experience for Reddit images, allowing users to explore and enjoy content without interruption.
 
