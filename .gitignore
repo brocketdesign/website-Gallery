@@ -128,5 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-public/img/
+public/img/dl/*
+public/img/fav/*
 START.app/
