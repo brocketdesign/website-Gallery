@@ -170,77 +170,97 @@ router.post('/isnewpage', urlencodedParser, async function (req, res) {
 })
 router.post('/search', urlencodedParser, async function (req, res) {
   const db = req.app.locals.db;
-  let searchmode = req.body.searchmode || 'video'
-  let keyword = req.body.keyword
-  let page = req.body.page
-  let extractor = req.body.extractor
-  let topPage = req.body.topPage
+  let { searchmode = 'video', keyword, page, extractor, topPage } = req.body;
   let settings = await db.collection('settings').find({}).toArray();
-  try{
-    if(settings[0].searchParmStart!=''){
-      keyword=settings[0].searchParmStart+' '+keyword
-    }
-    if(settings[0].searchParmStart!=''){
-      keyword=keyword+' '+settings[0].searchParmEnd
-    }
-  }catch{}
 
-  console.log({
-    event:'search/',
-    searchmode:searchmode,
-    keyword:keyword,
-    page:page,
-    extractor:extractor,
-    topPage:topPage,
-    viewDate:new Date(),
-  })
-  console.log(extractor)
-  db.collection('history-search').insertOne({
-    event:'search/',
-    searchmode:searchmode,
-    keyword:keyword,
-    page:page,
-    extractor:extractor,
-    topPage:topPage,
-    viewDate:new Date().toLocaleString(),
-  })
-  if(topPage!="false"){
-    //SAVE LATEST PAGE
-    let data_coll = 'dataVideo'
-    if(searchmode=='video'){  data_coll = 'dataVideo' }
-    if(searchmode=='image'){ data_coll = 'dataImage' }
-    if(searchmode=='gif'){ data_coll = 'dataGif' }
-    //dataVideo
-    db.collection(data_coll).updateOne({ _id: new ObjectId(extractor) }, { $set: { latestPage: page } }, (err, result) => {  });
+  keyword = modifyKeyword(settings, keyword);
+
+  logSearchEvent(searchmode, keyword, page, extractor, topPage);
+
+  await db.collection('history-search').insertOne(createHistorySearch(searchmode, keyword, page, extractor, topPage));
+
+  if (topPage != "false") {
+    await saveLatestPage(db, searchmode, extractor, page);
   }
 
-  let result = []
-  if(searchmode!=undefined){
-    //in DB
-    let c_inDbRes = await db.collection('allMedia').find({type:searchmode,_id:new ObjectId(extractor),isViewed:{statut:false}}).limit(30).toArray();
-    console.log({
-      event:'in DB',
-      extractor:extractor,
-      type:searchmode,
-      r:c_inDbRes.length
-    })
-    if(c_inDbRes.length>1){
-      result=result.concat(c_inDbRes)
-    }else{
-        let options = await db.collection('dataImage').findOne({_id:new ObjectId(extractor)});
-        console.log({
-          event:'Scrapping ...',
-          extractor:extractor,
-          page:page,
-          options:options
-        })
-        let cRes  = await pornPics(options,page,extractor,db)
-        result = result.concat(cRes)
-    }
+  let result = await getResult(db, searchmode, extractor, page);
 
-  }
   res.send(result.reverse());
 });
+
+function modifyKeyword(settings, keyword) {
+  try {
+    if (settings[0].searchParmStart != '') {
+      keyword = settings[0].searchParmStart + ' ' + keyword;
+    }
+    if (settings[0].searchParmStart != '') {
+      keyword = keyword + ' ' + settings[0].searchParmEnd;
+    }
+  } catch {}
+  return keyword;
+}
+
+function logSearchEvent(searchmode, keyword, page, extractor, topPage) {
+  console.log({
+    event: 'search/',
+    searchmode,
+    keyword,
+    page,
+    extractor,
+    topPage,
+    viewDate: new Date(),
+  });
+  console.log(extractor);
+}
+
+function createHistorySearch(searchmode, keyword, page, extractor, topPage) {
+  return {
+    event: 'search/',
+    searchmode,
+    keyword,
+    page,
+    extractor,
+    topPage,
+    viewDate: new Date().toLocaleString(),
+  };
+}
+
+async function saveLatestPage(db, searchmode, extractor, page) {
+  let data_coll = 'dataVideo';
+  if (searchmode == 'video') { data_coll = 'dataVideo'; }
+  if (searchmode == 'image') { data_coll = 'dataImage'; }
+  if (searchmode == 'gif') { data_coll = 'dataGif'; }
+
+  await db.collection(searchmode).updateOne({ _id: new ObjectId(extractor) }, { $set: { latestPage: page } });
+}
+
+async function getResult(db, searchmode, extractor, page) {
+  let result = [];
+  if (searchmode != undefined) {
+    let c_inDbRes = await db.collection('allMedia').find({ type: searchmode, _id: new ObjectId(extractor), isViewed: { statut: false } }).limit(30).toArray();
+    console.log({
+      event: 'in DB',
+      extractor,
+      type: searchmode,
+      r: c_inDbRes.length
+    });
+    if (c_inDbRes.length > 1) {
+      result = result.concat(c_inDbRes);
+    } else {
+      let options = await db.collection('dataImage').findOne({ _id: new ObjectId(extractor) });
+      console.log({
+        event: 'Scrapping ...',
+        extractor,
+        page,
+        options
+      });
+      let cRes = await pornPics(options, page, extractor, db);
+      result = result.concat(cRes);
+    }
+  }
+  return result;
+}
+
 router.post('/isviewed',urlencodedParser,async (req, res) => {
   const db = req.app.locals.db;
   db.collection('allMedia').updateMany({ url: req.body.url }, { $set: { isViewed: {statut:true,date:req.body.date}, } }, (err, result) => {
