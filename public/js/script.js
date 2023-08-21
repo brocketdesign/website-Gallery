@@ -2770,7 +2770,7 @@ function addSite(s){
     isNewPage:'off',
     statut:'true'
   }
-  $.post('/api/addone/dataImage',obj,function(result){
+  $.post('/api/addone/image',obj,function(result){
     console.log(result)
     $.cookie('activ_ext',result,{expire:7})
     window.location = '/search';
