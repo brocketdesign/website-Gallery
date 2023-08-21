@@ -603,6 +603,7 @@ function arrayToSlideshow(arr,option){
   wichDesign(ctr.find('.content'))
   $(window).scrollTop($('.isnp-container[data-id="'+slid+'"]').offset().top - 50);
 }
+
 function loadResultSearch(option){
   let extractor = option.extractor
   //console.log(`loadResultSearch ${extractor}`)
