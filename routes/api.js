@@ -184,7 +184,10 @@ router.post('/search', urlencodedParser, async function (req, res) {
   }
 
   let result = await getResult(db, searchmode, extractor, page);
-
+  if(!result){
+    res.send()
+    return
+  }
   res.send(result.reverse());
 });
 
@@ -226,39 +229,44 @@ function createHistorySearch(searchmode, keyword, page, extractor, topPage) {
 }
 
 async function saveLatestPage(db, searchmode, extractor, page) {
-  let data_coll = 'dataVideo';
-  if (searchmode == 'video') { data_coll = 'dataVideo'; }
-  if (searchmode == 'image') { data_coll = 'dataImage'; }
-  if (searchmode == 'gif') { data_coll = 'dataGif'; }
-
-  await db.collection(searchmode).updateOne({ _id: new ObjectId(extractor) }, { $set: { latestPage: page } });
+  try {
+      await db.collection(searchmode).updateOne({ _id: new ObjectId(extractor) }, { $set: { latestPage: page } });
+  } catch (error) {
+    console.error(error)
+    console.log('Could not save the latest page for mode: ',searchmode)
+  }
 }
 
 async function getResult(db, searchmode, extractor, page) {
-  let result = [];
-  if (searchmode != undefined) {
-    let c_inDbRes = await db.collection('allMedia').find({ type: searchmode, _id: new ObjectId(extractor), isViewed: { statut: false } }).limit(30).toArray();
-    console.log({
-      event: 'in DB',
-      extractor,
-      type: searchmode,
-      r: c_inDbRes.length
-    });
-    if (c_inDbRes.length > 1) {
-      result = result.concat(c_inDbRes);
-    } else {
-      let options = await db.collection('dataImage').findOne({ _id: new ObjectId(extractor) });
+  try {
+    let result = [];
+    if (searchmode != undefined) {
+      let c_inDbRes = await db.collection('allMedia').find({ type: searchmode, _id: new ObjectId(extractor), isViewed: { statut: false } }).limit(30).toArray();
       console.log({
-        event: 'Scrapping ...',
+        event: 'in DB',
         extractor,
-        page,
-        options
+        type: searchmode,
+        r: c_inDbRes.length
       });
-      let cRes = await pornPics(options, page, extractor, db);
-      result = result.concat(cRes);
+      if (c_inDbRes.length > 1) {
+        result = result.concat(c_inDbRes);
+      } else {
+        let options = await db.collection('dataImage').findOne({ _id: new ObjectId(extractor) });
+        console.log({
+          event: 'Scrapping ...',
+          extractor,
+          page,
+          options
+        });
+        let cRes = await pornPics(options, page, extractor, db);
+        result = result.concat(cRes);
+      }
     }
+    return result;
+  } catch (error) {
+    console.error(error)
   }
-  return result;
+  return
 }
 
 router.post('/isviewed',urlencodedParser,async (req, res) => {
