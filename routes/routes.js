@@ -118,3 +118,6 @@ router.get('/_history',async function(req, res) {
   }
 
 });
+
+
+module.exports = router;
