@@ -1,0 +1,72 @@
+extends default
+
+block content
+        - let plcTxt = "Search images ..."
+        if query 
+            - plcTxt = query
+        .row#searchPage 
+            select.rounded-0.extractor.w-100(onchange="searchExtractor({ex:this})")
+                option(value='false') All
+                each info in data
+                    if info.statut == 'true'
+                        option(value=`${info._id}`) #{info.site}
+        if (data && (searchmode != 'safe'))
+            nav
+                #nav-tab.nav.nav-tabs.row.p-0(role="tablist")
+                    - index = true
+                    each info in data
+                        - var pageIndex = info.latestPage || 1
+                        if info.statut == 'true'
+                            - activity = ''
+                            - selected = 'false'
+                            if index == true
+                                - activity = 'active'
+                                - selected = 'true'
+                            .c_ct.p-0(data-id=`${info._id}` data-ct=`${ranking[info.site]}`)
+                                .row.d-none(id=`scrollto-${info.site}` style='height: 50px;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:cover;')
+                                .row.p-0
+                                    button.nav-link.extractor.text-center.bg-dark.rounded-0.col-12.col-sm-5(class=[activity] id=`${info.site}` data-bs-toggle="tab" data-bs-target=`${info.site}` type="button" role="tab" aria-controls=`${info.site}` aria-selected=`${selected}` style="overflow:hidden") 
+                                        span.domain.p-2.feather(data-value=`${info.siteurl}`)
+                                        span.domainlogo.mx-2
+                                        span.domainname.badge.badge-secondary(data-value=`${info.site}`) #{info.site}
+                                    button.count_page.btn.rounded-0.bg-light.text-center(data-id=`${info._id}` style="flex:1;")
+                                        span.c #{pageIndex}
+                                    - swit = ['isnewpage-0','isnewpage-1']
+                                    if info.isNewPage =='off'
+                                        - swit = ['isnewpage-1','isnewpage-0']
+                                    button.btn.rounded-0.loadmore.btn-light.text-center(data-value="1" data-id=`${info._id}` style="flex:1;" data-switch="slick-reset-1")
+                                        span(data-feather="arrow-right") Next
+                                    button.btn.rounded-0.loadmore.bg-light.text-center.text-dark( style="flex:1;")
+                                        span.result_length(data-extractor=`${info.site}`)
+                                    button.btn.rounded-0.loadmore.bg-light.text-center.slick-control(data-value="1" data-id=`${info._id}` style="flex:1;")
+                                        span.i(data-feather="arrow-right") Next
+                                - index = false
+                                .container-content.p-0(data-id=`${info._id}` class=`isnewpage-${info.isNewPage}`)
+                                    .page
+                                    .slider-for(data-id=`${info._id}`)
+                                    .content.row.p-0(data-id=`${info._id}` data-relay=`${info.site}` abs-ext=`${info.site}`)
+                                    .loading.search.text-center(data-value=`${pageIndex}` data-id=`${info._id}` style="opacity:0;display:none")
+                                    .isnp-container.extractor(data-value="1" data-id=`${info._id}` data-extractor=`${info.site}` style="display:none")
+                                        .d-flex.border.border-dark
+                                            .slick-play.slick-control.destroy.text-center.btn.btn-light.rounded-0(style="cursor:pointer;flex:1;" data-id=`${info._id}`)
+                                                span.i.on(data-feather="play")
+                                                span.i.off(data-feather="pause")
+                                            button.btn.rounded-0.btn-light.text-center.slick-view.slick-control(onclick="slickControler(this)" data-value="1" data-id=`${info._id}` style="flex:1;")
+                                                span.i.on.d-inline-block.relay(data-feather="grid") Grid
+                                            button.btn.rounded-0.btn-light.text-center.slick-view.slick-control(onclick="slickControler(this)" data-value="1" data-id=`${info._id}` style="flex:1;")
+                                                span.i.off.d-inline-block(data-feather="columns") Slide
+                                            button.btn.rounded-0.btn-light.text-center.slick-reset.slick-control(onclick="reset_content(this)" data-switch="slick-reset-0" data-value="1" data-id=`${info._id}` style="flex:1;")
+                                                span.i.off.d-inline-block(data-feather="x") Hide
+                                            button.length.btn.rounded-0.btn-light.text-center
+                                        .arrayToSlideshow.content.isnewpage-on.row
+                                        button.btn.rounded-0.btn-light.text-center.slick-backtop.slick-control(onclick="slickControler(this)" data-value="1" data-id=`${info._id}` style="flex:1;")
+                                            span.i(data-feather="arrow-up") Up
+            div.template.lazyload.col-sm-6.col-lg-3.col-12.cardContainer.image.ccm.p-1(style="display:none;width:auto" onclick="setContainerWidth(this)")
+                div.card.img-content.border-0(style='width: 100%;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:cover;')
+                    img.card-img-top.poster(src alt data-value style="opacity:1;width:100%" )
+                    .favAnim.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;left: 0;color: white;height: auto;width:auto;padding:10px;") 
+                        span(data-feather="heart" style="width:5vw;height:5vw;max-width:30px;max-height:30px") FAV
+                    .typeAnim-gif.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;right: 0;color: white;height: auto;width:auto;padding:10px;") 
+                        span(data-feather="video" style="width:5vw;height:5vw;max-width:30px;max-height:30px") GIF
+                    .loading.position-absolute.shadow.justify-content-center.align-items-center(role="status" data-value style="display:none;top: 0;bottom: 0;right: 0;left: 0;color: white;height: 100%;width: 100%;padding: 10px;" )
+                        .spinner-border

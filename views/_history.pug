@@ -1,0 +1,30 @@
+extends default
+
+block content
+    section(style="margin-top:80px;height:10vh;position:relative")
+        div.overlay(style="display:none")
+        div.container#history
+            div.row.d-none
+                .col-6
+                    button.btn.btn-primary(type="button" onclick="sortHistoryMostViewTime()") Most viewed
+                .col-6
+                    button.btn.btn-primary(type="button" onclick="sortHistory()") Chronologique
+            div.row#sorted
+                div.col-sm-6.col-12(style="padding: unset;")
+                    each search in searchs
+                        div.card.history-item(style='width: 100%;')
+                            div.card-body
+                                a(href=`/search/${search.searchmode}?keyword=${search.keyword}`) 
+                                    p 
+                                        span #{search.searchmode} : 
+                                        span #{search.keyword}
+                                p.date(style="font-size:small") #{search.viewDate}
+                div.col-sm-6.col-12(style="padding: unset;")
+                    each video in videos
+                        div.card.history-item(style='width: 100%;')
+                            a(href=`/video/?url=${video.webpage_url}`)
+                                img.card-img-top(src=`${video.thumbnails[0].url}` alt=`${video.title}`)
+                            div.card-body
+                                a(href=`/video/?url=${video.webpage_url}` style="max-height: 27px;display: block;overflow:hidden")
+                                    h5.c.title #{video.title}
+                                span.date(style="font-size:small") #{video.viewDate}

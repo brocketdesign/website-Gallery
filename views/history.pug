@@ -1,0 +1,37 @@
+extends default
+
+block content
+    section(id=`${title}` data-collection=`${collection}`)
+        .row.mode.border-bottom.pb-1
+            button.d-none.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick=`loadElementFrom({page:'-2'},'${title}')`)
+                span(data-feather="arrow-left") Prev
+            button.d-none.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick=`loadElementFrom({page:'0'},'${title}')`)
+                span(data-feather="arrow-right") Next
+            button.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick="relay_setColum('fav-cont')")
+                span(data-feather="grid") Grid
+            select.col.rounded-0.extractor.d-none(onchange="loadElementFrom({ex:this},'history')")
+              option(value='false') All
+              each ext in extractors 
+                  option(value=`${ext}`) #{ext}
+        div.template._lazyload.lazyload.col-sm-6.col-md-4.col-lg-4.col-12.cardContainer.image.ccm.p-1(style="display:none;height:auto" data-value)
+            div.card.content.img-content.border-0(style='width: 100%;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:contain;')
+                img.card-img-top.poster(src alt data-value style="max-width:100%;opacity:1")
+                .favAnim.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;left: 0;color: white;height: 100%;width:auto;padding:10px;") 
+                    span(data-feather="heart" style="width:5vw;height:5vw;max-width:30px;max-height:30px") FAV
+                .typeAnim-gif.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;right: 0;color: white;height: 100%;width:auto;padding:10px;") 
+                    span(data-feather="video" style="width:5vw;height:5vw;max-width:30px;max-height:30px") GIF
+                .loading.position-absolute.text-center(role="status" data-value style="display:none;top: 0;bottom: 0;right: 0;left: 0;color: white;height: 100%;width: 100%;padding: 20%;" )
+                  .spinner-border
+            div.card-body.overlayIt.p-0.text-dark.position-absolute(style="display:none;")
+                .w-100.d-none
+                    span.p-1.fs-6.t(style="max-height:30px;display: block;overflow:hidden")
+                .p-1.d-inline-block(style="width:25%")
+                    a.badge.rounded-pill.bg-dark.mb-2.Cextractor(target="_blank")
+                .p-1.d-inline-block.text-end(style="width:75%;cursor:pointer")
+                    span.deleteThis.text-dark.rounded-circle.mx-3(data-value data-collection style="cursor:pointer")
+                        span.badge.bg-white.text-dark.border.border-dark.rounded-circle.p-1.shadow(data-feather="trash") Delete
+                    span.zoom_in.text-dark.rounded-circle.mx-3.d-none.d-lg-inline(data-value style="cursor: pointer;") 
+                        span.badge.bg-white.text-dark.border.border-dark.rounded-circle.p-1.shadow(data-feather="zoom-in") Zoom
+        div#related.row(data-relay="fav-cont")
+        #loading_page.search.text-center.text-white.w-100.my-5
+            .loading.spinner-border(role="status" data-value="1" style="display:inline-block")

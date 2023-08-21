@@ -1,0 +1,115 @@
+extends default
+
+block content
+    #settingssPage
+        span#searchmode.d-none(data-value=`${searchmode}`)
+        h4.p-2.border-bottom.border-danger.bg-transparent Settings
+        ul.nav.nav-tabs#myTab(role="tablist")
+            li.nav-item.col(role="presentation")
+                button.nav-link.w-100.switchMode(data-value="image" id="image-tab" data-bs-toggle="tab" data-bs-target="#image" type="button" role="tab" aria-controls="home" aria-selected="true")
+                    span(data-feather="image") Images
+            li.nav-item.col(role="presentation")
+                button.nav-link.w-100(id="settings-tab" data-bs-toggle="tab" data-bs-target="#settings" type="button" role="tab" aria-controls="home" aria-selected="false")
+                    span(data-feather="settings") Settings
+        .tab-content#myTabContent.bg-white
+            .tab-pane.fade.show.active#image(role="tabpanel" aria-labelledby="image-tab")
+                .row
+                    .col-12.col-sm-6
+                        h4.text-center.p-3 Add new site (Image)
+                        .p-3.shadow.border
+                            form(action="/api/addone/dataImage" method="POST" data-value="dataImage")
+                                .mb-3
+                                    label(for="site" class="form-label") Site
+                                    input#site(type="text" class="form-control" name="site")
+                                .mb-3
+                                    label(for="siteurl" class="form-label") Site URL
+                                    input#siteurl(type="text" class="form-control" name="siteurl" onkeyup="autoInputSite(this)")
+                                .mb-3.d-none
+                                    input(type="text" class="form-control" name="statut" value="true")
+                                    input.form-check-input(type="checkbox" name="isNewPage" value="off" checked)
+                                    label.form-check-label.mx-2(for="isNewPage") isNewPage
+                                button(type="submit" class="btn btn-primary w-100") Add new site
+                    .col-12.col-sm-6
+                        h4.text-center.p-3 Website(s) List
+                        .p-3.shadow.border
+                            ul.list-group.flex-column-reverse
+                                each data in  dataImage
+                                    button.list-group-item.list-group-item-action(type="button" data-id=`${data._id}` data-collection="dataImage")
+                                        .row
+                                            .col-9
+                                                if data.statut == 'true'
+                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="dataImage" onclick="checboxmanager(this)" checked)
+                                                else
+                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="dataImage" onclick="checboxmanager(this)")
+                                                label.form-check-label.mx-2(for=`radio-${data.site}`) #{data.site}
+                                            .col-3.text-end.removeThisId(data-id=`${data._id}` data-collection="dataImage")
+                                                span(data-feather="trash") Delete
+            .tab-pane.fade#settings(role="tabpanel" aria-labelledby="settings-tab")
+              h4.px-3.pt-3 Break Time
+              .row.py-3
+                form(action='/api/addone/settings' method='POST')
+                  .row
+                    .col-4
+                      .form-check
+                      input.form-check-input(type="checkbox" value="true" id="toggle" name="toggle")
+                      label.form-check-label(for="toggle")
+                          span Statut
+                    .col-4
+                      input.w-100(type="number" id="interval" name="interval" min="1" max="20" placeholder='Interval between pause (min)')
+                    .col-4
+                      input.w-100(type="number" id="duration" name="duration" min="1" max="100" placeholder='Duration of pause (sec)')
+                  button.btn.btn-success.w-100(type='submit') Submit
+              h4.px-3.pt-3 Slider Settings
+              .row.py-3
+                form(action='/api/addone/settings' method='POST')
+                  .row
+                    .col-6
+                      input.w-100(type="number" id="slick_height" name="slick_height" min="20" max="100" placeholder='Slider height (vh)')
+                  button.btn.btn-success.w-100(type='submit') Submit
+                h4.px-3.pt-3 Search Mode
+                .row.text-center.py-3
+                    .col
+                        a.btn.switchMode(href='/search/video' data-value="video")
+                            span(data-feather="video") Videos
+                    .col
+                        a.btn.switchMode(href='/search/image' data-value="image")
+                            span(data-feather="image") Images
+                    .col
+                        a.btn.switchMode(href='/search/gif' data-value="gif")
+                            span(data-feather="film") Gifs
+                    .col
+                        a.btn.switchMode(href='/search/safe' data-value="safe")
+                            span(data-feather="eye-off") Safe
+                h4.p-3 Search Paramters
+                ul.list-group
+                    each data in  settings
+                        button.list-group-item.list-group-item-action(type="button" data-id=`${data._id}` data-collection="settings")
+                            .row
+                                .col-6 searchParmStart
+                                .col-6 #{data.searchParmStart}
+                            .row
+                                .col-6 searchParmEnd
+                                .col-6 #{data.searchParmEnd}
+                if settings[0]
+                    .p-3.shadow.border
+                        form(action=`/api/update/settings?elementTypeID=${settings[0]._id}` method="POST" data-value="settings")
+                            .row.mb-3
+                                .col-12
+                                    label(for="searchParmStart" class="form-label") searchParmStart
+                                    input#searchParmStart(type="text" class="form-control" name="searchParmStart")
+                                    label(for="searchParmEnd" class="form-label") searchParmEnd
+                                    input#searchParmEnd(type="text" class="form-control" name="searchParmEnd")
+                            button(type="submit" class="btn btn-primary w-100") Update parameter
+                    h4.p-3 Tags
+                        if settings[0].tags
+                            h5 Tags list
+                            .row
+                                each tag in settings[0].tags
+                                    .col-3.col-lg-3
+                                        span.removeTag.btn.rounded-pill.btn-outline-primary.my-1(data-value=`${tag}`) #{tag}
+                    form(action=`/api/dataTags` method="POST" data-value="settings")
+                        .row.mb-3
+                            .col-12
+                                label(for="tags" class="form-label") Tags
+                                textarea#tags(class="form-control" name="tags")
+                        button(type="submit" class="btn btn-primary w-100") Update tags

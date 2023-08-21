@@ -1,0 +1,39 @@
+{
+  "name": "simple-node-website",
+  "version": "0.1.0",
+  "description": "A simple website built with Node, Express and Pug",
+  "main": "server.js",
+  "scripts": {
+    "start": "npx nodemon server.js"
+  },
+  "author": "Ayo Isaiah",
+  "license": "MIT",
+  "dependencies": {
+    "@justalk/pornhub-api": "^3.5.0",
+    "axios": "^1.4.0",
+    "body-parser": "^1.19.0",
+    "bootstrap-icons": "^1.4.1",
+    "cheerio": "^1.0.0-rc.3",
+    "cookie-parser": "^1.4.6",
+    "cron": "^2.4.0",
+    "directory-tree": "^2.2.4",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.0",
+    "get-website-favicon": "^0.0.7",
+    "images-scraper": "^6.4.2",
+    "ip": "^1.1.8",
+    "json-2-csv": "^4.1.0",
+    "moment": "^2.29.4",
+    "mongoose": "^5.12.3",
+    "node-image-downloader": "^1.0.7",
+    "node-statsd": "^0.1.1",
+    "pug": "^2.0.3",
+    "puppeteer": "^5.2.1",
+    "request": "^2.88.2",
+    "youtube-dl": "^3.5.0",
+    "youtube-dl-wrap": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.19.0"
+  }
+}

@@ -1,0 +1,12 @@
+extends default
+
+block content
+    #topPage
+        span#searchmode.d-none(data-value=`${searchmode}`)
+        .row.d-none
+            a.btn.col-4.border.btn-outline-dark.rounded-0.pb-2.switchMode(href='/search/video' data-value="video" ) 
+                span(data-feather="video") Videos
+            a.btn.col-4.border.btn-outline-dark.rounded-0.pb-2.switchMode(href='/search/image' data-value="image" ) 
+                span(data-feather="image") Images
+            a.btn.col-4.border.btn-outline-dark.rounded-0.pb-2.switchMode(href='/search/gif' data-value="gif" ) 
+                span(data-feather="film") Gifs  
