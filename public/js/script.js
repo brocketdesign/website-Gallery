@@ -619,7 +619,7 @@ function loadResultSearch(option){
     }
   })
   //if(howMany.length>=2){howMany=false}
-  /*
+  
   console.log({
     extractor:extractor,
     currPage:currPage,
@@ -628,7 +628,7 @@ function loadResultSearch(option){
     option:option,
     doIt:(howMany && isContinue && (!! document.querySelector('.loading.search[data-id="'+extractor+'"]')) &&(! $('.loading[data-id="'+extractor+'"]').hasClass('on')))
   })
-  */
+  
   if(howMany && isContinue && (!! document.querySelector('.loading.search[data-id="'+extractor+'"]')) &&(! $('.loading[data-id="'+extractor+'"]').hasClass('on')) ){
 
     if(currPage!='false'){
@@ -721,7 +721,7 @@ function loadResultSearch(option){
             isSingle = 'col-12'
         }
         $.post('/api/search',{keyword:keyword,extractor:extractor,searchmode:searchmode,page:currPage,topPage:topPage},function(data){
-          //console.log(data)
+          console.log(data)
             let res=[];
             data.forEach(video => {
               if (video!=null){
