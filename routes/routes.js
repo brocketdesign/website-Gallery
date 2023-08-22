@@ -24,8 +24,8 @@ router.get('/settings',urlencodedParser, async (req,res) => {
   const db = req.app.locals.db;
   const initDataVal = await initData(db)
   let settings = await db.collection('settings').find({}).toArray()
-  let dataImage = await db.collection('dataImage').find({}).toArray()
-  res.render('settings',{title:'Settings',initDataVal:initDataVal,settings:settings,dataImage:dataImage,searchmode:'image'})
+  let images = await db.collection('image').find({}).toArray()
+  res.render('settings',{title:'Settings',initDataVal:initDataVal,settings:settings,images:images,searchmode:'image'})
 
  })
 router.get('/category', async (req,res) => {
@@ -69,6 +69,7 @@ router.get('/history/', async function(req, res) {
   }catch{}
   res.render('history',{title:'history',extractors:extractors,collection:'favoriteImage',searchmode:'image'})
 });
+
 router.get('/search', urlencodedParser, async function (req, res) {
   const db = req.app.locals.db;
   let extractors = await db.collection('ranking').find({}).toArray();
@@ -82,7 +83,7 @@ router.get('/search', urlencodedParser, async function (req, res) {
   let ranking = {}
   let searchmode = req.query.searchmode || 'image'
   let keyword = req.query.keyword
-  let data = await db.collection('dataImage').find({}).sort({_id:-1}).toArray();
+  let data = await db.collection('image').find({}).sort({_id:-1}).toArray();
   let settings = await db.collection('settings').find({}).toArray();
   extractors.forEach((element,index) => {
     ranking[element] = values[index]

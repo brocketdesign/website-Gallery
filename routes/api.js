@@ -185,8 +185,8 @@ router.post('/search', urlencodedParser, async function (req, res) {
 
   let result = await getResult(db, searchmode, extractor, page);
   if(!result){
-    res.send()
-    return
+    res.send([])
+    return 
   }
   res.send(result.reverse());
 });
@@ -251,7 +251,7 @@ async function getResult(db, searchmode, extractor, page) {
       if (c_inDbRes.length > 1) {
         result = result.concat(c_inDbRes);
       } else {
-        let options = await db.collection('dataImage').findOne({ _id: new ObjectId(extractor) });
+        let options = await db.collection('image').findOne({ _id: new ObjectId(extractor) });
         console.log({
           event: 'Scrapping ...',
           extractor,
@@ -339,7 +339,7 @@ router.post('/:myAction/:elementType', urlencodedParser, (req, res) => {
 
   handleAction()
     .then(() => {
-      res.send(resID);
+      res.redirect('_back');
     })
     .catch(err => {
       console.error(err);

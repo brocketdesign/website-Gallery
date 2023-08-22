@@ -17,7 +17,7 @@ block content
                     .col-12.col-sm-6
                         h4.text-center.p-3 Add new site (Image)
                         .p-3.shadow.border
-                            form(action="/api/addone/dataImage" method="POST" data-value="dataImage")
+                            form(action="/api/addone/image" method="POST" data-value="image")
                                 .mb-3
                                     label(for="site" class="form-label") Site
                                     input#site(type="text" class="form-control" name="site")
@@ -33,16 +33,16 @@ block content
                         h4.text-center.p-3 Website(s) List
                         .p-3.shadow.border
                             ul.list-group.flex-column-reverse
-                                each data in  dataImage
-                                    button.list-group-item.list-group-item-action(type="button" data-id=`${data._id}` data-collection="dataImage")
+                                each data in  images
+                                    button.list-group-item.list-group-item-action(type="button" data-id=`${data._id}` data-collection="image")
                                         .row
                                             .col-9
                                                 if data.statut == 'true'
-                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="dataImage" onclick="checboxmanager(this)" checked)
+                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="image" onclick="checboxmanager(this)" checked)
                                                 else
-                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="dataImage" onclick="checboxmanager(this)")
+                                                    input.form-check-input(type="checkbox" data-id=`${data._id}` id=`radio-${data.site}` data-collection="image" onclick="checboxmanager(this)")
                                                 label.form-check-label.mx-2(for=`radio-${data.site}`) #{data.site}
-                                            .col-3.text-end.removeThisId(data-id=`${data._id}` data-collection="dataImage")
+                                            .col-3.text-end.removeThisId(data-id=`${data._id}` data-collection="image")
                                                 span(data-feather="trash") Delete
             .tab-pane.fade#settings(role="tabpanel" aria-labelledby="settings-tab")
               h4.px-3.pt-3 Break Time

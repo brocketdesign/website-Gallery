@@ -24,6 +24,7 @@ function getTags() {
 }
 
 function handleSearch(extractor, currPage, option) {
+  console.log('search for ',extractor)
         $('.loading[data-id="'+extractor+'"]').addClass('on')
   
         let nextPage = parseInt(currPage)+1
@@ -112,8 +113,12 @@ function handleSearch(extractor, currPage, option) {
           if(!! document.querySelector('#single')){
               isSingle = 'col-12'
           }
-          $.post('/api/search',{keyword:keyword,extractor:extractor,searchmode:searchmode,page:currPage,topPage:topPage},function(data){
-            console.log(data)
+          const query = {keyword:keyword,extractor:extractor,searchmode:searchmode,page:currPage,topPage:topPage}
+          $.post('/api/search',query,function(data){
+
+            if(data.length==0){
+              console.log('Nothing founded. ',query)
+            }
               let res=[];
               data.forEach(video => {
                 if (video!=null){

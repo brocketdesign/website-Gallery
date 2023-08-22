@@ -246,6 +246,7 @@ function activ_ext(){
 }
 function searchExtractor(op){
   ext=$(op.ex).val() || op
+  console.log({ext})
   reset_content()
   let nf = true
   $('.c_ct').each(function(){

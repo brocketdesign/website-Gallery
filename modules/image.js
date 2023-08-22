@@ -39,27 +39,41 @@ async function searchInfo(page,option,db){
     }else{
         //url_href = await deepSearchLoop(url_origin,page,db)
     }
-    if(url_href.indexOf('reddit.com')>=0){
-      let url_after = await new Promise((resolve,reject)=>{
-        db.collection('dataImage').findOne({'site':option.site}, (err, result) => {
-          if(result){
-            resolve(result.after)
-          }
-        })
-      })
-      url_href = url_href+url_after
-    }
 
-    return await got(url_href).then(async(response) => {
-        console.log(`Start search for ${url_href}`)
+    if (url_href.indexOf('reddit.com') >= 0) {
+        console.log('Looking for the latest after ID');
+        
+        try {
+          let result = await db.collection('image').findOne({ 'site': option.site });
+          
+          if (result) {
+            console.log('Found a result:', result);
+            console.log({ afterID: result.after });
+            url_href = url_href + result.after;
+          } else {
+            console.log('No result found for the site:', option.site);
+          }
+        } catch (err) {
+          console.log('An error occurred while searching for the latest after ID:', err);
+        }
+      }
+      
+
+    return got(url_href)
+    .then(response => {
+        console.log(`Start search for ${url_href}`);
         const $ = cheerio.load(response.body);
-        let result = await asnyScrap($,option,new URL(url_href),db)
-        console.log(`anyscrap resulte length : ${result.length}`)
-        return result
-    }).catch(err => {
+        return asnyScrap($, option, new URL(url_href), db);
+    })
+    .then(result => {
+        console.log(`anyscrap result length: ${result.length}`);
+        return result;
+    })
+    .catch(err => {
         console.log(err);
-        return false
+        return false;
     });
+
 }
 async function deepSearchLoop(url_origin,page,db){
     let url_href = await new Promise((resolve,reject)=>{
