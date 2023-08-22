@@ -49,7 +49,9 @@ async function searchInfo(page,option,db){
           if (result) {
             console.log('Found a result:', result);
             console.log({ afterID: result.after });
+            if(result.after){
             url_href = url_href + result.after;
+            }
           } else {
             console.log('No result found for the site:', option.site);
           }

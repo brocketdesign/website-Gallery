@@ -15,12 +15,7 @@ var urlencodedParser = bodyParser.urlencoded({ extended: true })
 
 router.get('/', function(req, res) {
   const db = req.app.locals.db;
-  /*
-  const dataVideo = require('../modules/dataVideo')
-  db.collection('dataVideo').insertMany(dataVideo, (err, results) => { });
-  const dataImage = require('../modules/dataImage')
-  db.collection('dataImage').insertMany(dataImage, (err, results) => { });
-*/
+
   res.send('API V1.00')
 });
 router.get('/favorites', async function(req, res) {
@@ -339,7 +334,7 @@ router.post('/:myAction/:elementType', urlencodedParser, (req, res) => {
 
   handleAction()
     .then(() => {
-      res.redirect('_back');
+      res.redirect(req.get('Referrer') || '_back');
     })
     .catch(err => {
       console.error(err);

@@ -2822,16 +2822,16 @@ function controlSwitch(){
 function updateIsNewPage(el){
   let s_inp = $(el).attr('data-value')
   let obj = {'isNewPage':s_inp}
-  $.get('/api/db/dataImage?so_b=site&so_k='+$(el).attr('data-extractor'),function(result){
+  $.get('/api/db/image?so_b=site&so_k='+$(el).attr('data-extractor'),function(result){
     let s_id=result._id
-    $.post('/api/update/dataImage?elementTypeID='+s_id,obj)
+    $.post('/api/update/image?elementTypeID='+s_id,obj)
   })
 
 }
 function updateStatut(el){
   let s_extractor = $(el).attr('data-extractor')
   //console.log(s_extractor)
-  $.post('/api/delete/dataImage?elementTypeID='+s_extractor)
+  $.post('/api/delete/image?elementTypeID='+s_extractor)
   $(el).hide()
   $(el).closest('.c_ct').hide()
 }

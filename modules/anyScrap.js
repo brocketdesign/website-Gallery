@@ -118,10 +118,10 @@ async  function asnyScrap($,option,vUrl,db){
             */
         }else{
           //REDDIT
-          db.collection('dataImage').findOne({'site':option.site}, (err, result) => {
+          db.collection('image').findOne({'site':option.site}, (err, result) => {
             if(result){
               let elID = result._id
-              db.collection('dataImage').updateOne({ _id: new ObjectId(elID) }, { $set: { after: isJSON.data.after } }, (err, result) => {  });
+              db.collection('image').updateOne({ _id: new ObjectId(elID) }, { $set: { after: isJSON.data.after } }, (err, result) => {  });
             }
           })
         for(let i=0;i<isJSON.data.children.length;i++){
