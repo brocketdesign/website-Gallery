@@ -28,6 +28,4 @@ const server = app.listen(port, () => {
   console.log(`Express running → PORT http://${ip.address()}:${port}`);
 });
 
-
-
 module.exports = app;
