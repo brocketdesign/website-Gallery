@@ -25,19 +25,12 @@ router.get('/favorites', async function(req, res) {
     event:'API favorites',
     _ext:_ext
   })
-  let result = await new Promise((resolve,reject)=>{
-    //db.collection('allMedia').find({'isFavorite':{$exists: true} , 'gif':{ $exists: true } }).sort({'_id':1}).toArray(function(err, results) {
-    db.collection('allMedia').find({'isFavorite':{$exists: true} }).sort({'_id':-1}).toArray(function(err, results) {
-      if(_ext){
-        results.forEach((item, i) => {
-          if(item.extractor!=_ext){
-            delete results[i]
-          }
-        });
-      }
-      resolve(results)
-    })
-  })
+  let result = []
+  if(!isNaN(_ext)){
+    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} ,extractor:_ext}).sort({'_id':-1}).toArray()
+  }else{
+    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} }).sort({'_id':-1}).toArray()
+  }
   res.send(result)
 });
 router.get('/history', async function(req, res) {
@@ -47,19 +40,12 @@ router.get('/history', async function(req, res) {
     event:'API history',
     _ext:_ext
   })
-  let result = await new Promise((resolve,reject)=>{
-    //db.collection('allMedia').find({'isFavorite':{$exists: true} , 'gif':{ $exists: true } }).sort({'_id':1}).toArray(function(err, results) {
-    db.collection('allMedia').find({}).sort({'_id':-1}).toArray(function(err, results) {
-      if(!isNaN(_ext)){
-        results.forEach((item, i) => {
-          if(item.extractor!=_ext){
-            delete results[i]
-          }
-        });
-      }
-      resolve(results)
-    })
-  })
+  let result = []
+  if(!isNaN(_ext)){
+    result = await db.collection('allMedia').find({extractor:_ext}).sort({'_id':-1}).toArray()
+  }else{
+    result = await db.collection('allMedia').find({}).sort({'_id':-1}).toArray()
+  }
   res.send(result)
 });
 router.get('/dlimg', async function(req, res) {
@@ -349,6 +335,7 @@ let so_b = req.query.so_b
 let so_k = req.query.so_k
 let search = req.query
 let elID = req.query.elID
+
 if(elID){
     db.collection(dbName).findOne({'_id':new ObjectId(elID)}, (err, result) => {res.send(result);})
 }

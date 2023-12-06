@@ -171,15 +171,15 @@ function favoriteEdit(){
 }
 function displayEl($this){
   let _url = $this.attr('data-url')
-
   if(!$this.hasClass('displayEl')){
     $this.addClass('displayEl')
     if($this.attr('data-type')=='gif'){
+      console.log('gif')
         if(!$this.hasClass('gif')){
-          //console.log('c4-1')
-          $this.addClass('gif')
           $this.find('.loading').fadeIn().addClass('d-flex')
           $.get('/api/db/allMedia?so_b=url&so_k='+_url,function(result){
+            console.log(result)
+
             let file = result.gif
             if(result.imgpath){
               file = result.imgpath
