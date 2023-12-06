@@ -170,6 +170,7 @@ function favoriteEdit(){
 }
 function displayEl($this){
   let _url = $this.attr('data-url')
+
   if(!$this.hasClass('displayEl')){
     $this.addClass('displayEl')
     if($this.attr('data-type')=='gif'){
@@ -246,7 +247,6 @@ function activ_ext(){
 }
 function searchExtractor(op){
   ext=$(op.ex).val() || op
-  console.log({ext})
   reset_content()
   let nf = true
   $('.c_ct').each(function(){
@@ -2081,9 +2081,12 @@ function flexibleSlider($slick){
       })
       $.get('/api/db/settings',function(result){
         //console.log(`slick height setting ${result[0].slick_height}`)
-        if(result[0].slick_height){
+        if(result && result[0]){
+          if(result[0].slick_height){
           $slick.css('height',`${result[0].slick_height/100*wh}px`)
         }
+      }
+        
       })
 
     $slick.find('.cardContainer').each(function(){
@@ -2452,13 +2455,19 @@ function lazyload_el(){
     let $this = $(this)
     let _img = $this.find('img').attr('data-src')
     //let _ot = $(this).offset().top
-    if(($this.hasClass('lazyload'))&&(_getDistanceFromTop($this)<=(vh))&&(_getDistanceFromTop($this)>(vh*(-0.5)))){
+    if(
+      ($this.hasClass('lazyload'))&&
+      (_getDistanceFromTop($this)<=(vh))&&(_getDistanceFromTop($this)>(vh*(-0.5)))
+      ){
       $this.removeClass('lazyload').removeClass('_lazyload')
       $this.addClass('lazyunload')
       addToViewed($this)
+      /*
       if(!!document.querySelector('#favorites') || !!document.querySelector('#history')){
         displayEl($this)
       }
+      */
+      displayEl($this)
     }
     if(($this.hasClass('lazyunload'))&&(_getDistanceFromTop($this)<=(vh*(-3)))){
       //console.log(`${$this.find('img').height()}`)
@@ -2932,7 +2941,7 @@ function toggleBreakerInit(){
     option.interval = 1
     option.duration = 20
     //console.log(result)
-    if(result){
+    if(result && result[0]){
       option.interval = result[0].interval || 1
       $('#interval').val(parseInt(result[0].interval))
       option.duration = result[0].duration || 20

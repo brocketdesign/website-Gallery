@@ -67,6 +67,7 @@ router.get('/history/', async function(req, res) {
   try{
     extractors = extractors[0].extractor
   }catch{}
+
   res.render('history',{title:'history',extractors:extractors,collection:'favoriteImage',searchmode:'image'})
 });
 

@@ -24,8 +24,8 @@ function getTags() {
 }
 
 function handleSearch(extractor, currPage, option) {
-  console.log('search for ',extractor)
-        $('.loading[data-id="'+extractor+'"]').addClass('on')
+
+  $('.loading[data-id="'+extractor+'"]').addClass('on')
   
         let nextPage = parseInt(currPage)+1
         if((nextPage>1) &&(option.triger=='true')){
@@ -196,7 +196,6 @@ function handleSearch(extractor, currPage, option) {
             $('.extractor.active').addClass('done')
           }
         }
-    
 }
 
 function loadResultSearch(option) {
