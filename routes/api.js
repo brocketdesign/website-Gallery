@@ -20,32 +20,53 @@ router.get('/', function(req, res) {
 });
 router.get('/favorites', async function(req, res) {
   const db = req.app.locals.db;
-  let _ext = req.query.extractor || false
+  let extractor = req.query.extractor || false
+  let page = req.query.page
+  page_number = parseInt(page) || 1;
+  const limit = 20; // Number of documents per page
+  const skip = (page_number) * limit; // Calculate skip value
   console.log({
     event:'API favorites',
-    _ext:_ext
+    extractor,page
   })
   let result = []
-  if(!isNaN(_ext)){
-    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} ,extractor:_ext}).sort({'_id':-1}).toArray()
+  if(ObjectId.isValid(extractor)){
+    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} ,extractor}).sort({'_id':-1})
+    .skip(skip) // Skip N documents
+    .limit(limit) // Limit to N documents
+    .toArray()
   }else{
-    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} }).sort({'_id':-1}).toArray()
+    result = await db.collection('allMedia').find({'isFavorite':{$exists: true} }).sort({'_id':-1})
+    .skip(skip) // Skip N documents
+    .limit(limit) // Limit to N documents
+    .toArray()
   }
   res.send(result)
 });
+
 router.get('/history', async function(req, res) {
   const db = req.app.locals.db;
-  let _ext = req.query.extractor || false
+  let extractor = req.query.extractor || false
+  let page = req.query.page
+  page_number = parseInt(page) || 0;
+  const limit = 20; // Number of documents per page
+  const skip = (page_number) * limit; // Calculate skip value
   console.log({
     event:'API history',
-    _ext:_ext
+    extractor,page
   })
   let result = []
-  if(!isNaN(_ext)){
-    result = await db.collection('allMedia').find({extractor:_ext}).sort({'_id':-1}).toArray()
+  
+  if(ObjectId.isValid(extractor)){
+    result = await db.collection('allMedia').find({extractor}).sort({'_id':-1})
+    .skip(skip) // Skip N documents
+    .limit(limit) // Limit to N documents
+    .toArray()
   }else{
-    result = await db.collection('allMedia').find({}).sort({'_id':-1}).toArray()
-  }
+    result = await db.collection('allMedia').find({}).sort({'_id':-1})
+    .skip(skip) // Skip N documents
+    .limit(limit) // Limit to N documents
+    .toArray()  }
   res.send(result)
 });
 router.get('/dlimg', async function(req, res) {
@@ -154,7 +175,6 @@ router.post('/search', urlencodedParser, async function (req, res) {
     await saveLatestPage(db, searchmode, extractor, page);
   }
   let result = await getResult(db, searchmode, extractor, page);
-  console.log(result[0])
   if(!result){
     res.send([])
     return 
@@ -327,8 +347,11 @@ router.get('/favicon',urlencodedParser,async (req, res) => {
   //console.log(result)
   res.send(result)
 })
+
+
+
 //GET DATA FROM DB
-router.get('/db/:dbName',urlencodedParser, (req, res) => {
+router.get('/db/:dbName',urlencodedParser,async (req, res) => {
 const db = req.app.locals.db;
 let dbName = req.params.dbName
 let so_b = req.query.so_b
@@ -347,9 +370,9 @@ if(so_b){
       res.send(results)
     });
   }else{
-    db.collection(dbName).findOne(so_, (err, result) => {
-      res.send(result);
-    })
+    if(so_b=='_id'){so_._id=new ObjectId(so_k)}
+    let existingItem = await db.collection(dbName).findOne(so_);
+    res.send(existingItem)
   }
 
 }

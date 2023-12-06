@@ -15,21 +15,39 @@ async function pornPic(option,page,extractor,db){
         site:extractor,
         length:result.length
     })
-    //addin media to DB
-    for(let i=0;i<result.length;i++){
-        let item = result[i]
-        if(item.type==undefined){
-            item.type = 'image'
+
+    //adding media to DB
+    result = await insertToMediasDB(result, db)
+
+    return result
+}
+async function insertToMediasDB(result, db) {
+    // Array to hold the inserted items
+    let insertedItems = [];
+
+    for (let item of result) {
+        if (item.type === undefined) {
+            item.type = 'image';
         }
-        item.isViewed={statut:false}
-        db.collection('allMedia').findOne({'url':item.url}, (err, res) => {
-            if(!res){
-                db.collection('allMedia').insertOne(item, (err, result) => { });
+        item.isViewed = { statut: false };
+
+        // Check if the item already exists
+        let existingItem = await db.collection('allMedia').findOne({ 'url': item.url });
+
+        if (!existingItem) {
+            // Insert the new item
+            let insertResult = await db.collection('allMedia').insertOne(item);
+            if (insertResult.insertedId) {
+                // Add the item with its _id to the array
+                item._id = insertResult.insertedId;
+                insertedItems.push(item);
             }
-        })
+        }else{
+            insertedItems.push(existingItem);
+        }
     }
-    //console.log(result)
-    return result.slice(0, 10)
+
+    return insertedItems;
 }
 
 async function searchInfo(page,option,db){
@@ -42,14 +60,11 @@ async function searchInfo(page,option,db){
     }
 
     if (url_href.indexOf('reddit.com') >= 0) {
-        console.log('Looking for the latest after ID');
         
         try {
           let result = await db.collection('image').findOne({ 'site': option.site });
           
           if (result) {
-            console.log('Found a result:', result);
-            console.log({ afterID: result.after });
             if(result.after){
             url_href = url_href + result.after;
             }
@@ -64,12 +79,10 @@ async function searchInfo(page,option,db){
 
     return got(url_href)
     .then(response => {
-        console.log(`Start search for ${url_href}`);
         const $ = cheerio.load(response.body);
         return asnyScrap($, option, new URL(url_href), db);
     })
     .then(result => {
-        console.log(`anyscrap result length: ${result.length}`);
         return result;
     })
     .catch(err => {

@@ -170,16 +170,15 @@ function favoriteEdit(){
   */
 }
 function displayEl($this){
-  let _url = $this.attr('data-url')
+  let itemId = $this.attr('data-id')
+
   if(!$this.hasClass('displayEl')){
-    $this.addClass('displayEl')
+    
     if($this.attr('data-type')=='gif'){
-      console.log('gif')
         if(!$this.hasClass('gif')){
           $this.find('.loading').fadeIn().addClass('d-flex')
-          $.get('/api/db/allMedia?so_b=url&so_k='+_url,function(result){
+          $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
             console.log(result)
-
             let file = result.gif
             if(result.imgpath){
               file = result.imgpath
@@ -187,24 +186,27 @@ function displayEl($this){
               imageDownloader($this,{dest:false,do:false})
             }
             //$this.find('.img-content').css('background-image',`url("${result.gif}")`)
+            $this.css({height:'150px'})
             $this.find('.img-content img').before(`<video data-src="${result.url}" src="${file}" oncanplay="hidePoster(this);setContainerWidth(this)" type="video/mp4" style="position:absolute;width:${$this.find('.img-content img').css('width')};height: 100%;display:none"  autoplay loop playsinline muted></video>`)
             $this.attr('data-gif',result.gif)
             $this.find('.typeAnim-gif').addClass('done').wrap(`<a target='_blank' href="${file}"></a>`)
             $this.find('.loading').hide().removeClass('d-flex')
+            $this.addClass('displayEl')
           })
         }
     }
     if($this.attr('data-type')=='image'){
       if($this.find('.img-content img.clone').length==0){
-        let src = JSON.parse($this.attr('data-all')).url
-        let thumb = JSON.parse($this.attr('data-all')).thumbnail
-        $.get('/api/db/allMedia?so_b=url&so_k='+src,function(result){
+        $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
+          console.log(result)
+          let src
           if(result.imgpath){
             src = result.imgpath
           }else{
             imageDownloader($this,{dest:false,do:false})
           }
-          if(src!=thumb){
+          console.log(src!=result.thumb)
+          if(src!=result.thumb){
             let img_container_clone = $this.find('.img-content img').clone()
             let img_container = $this.find('.img-content img')
             let loader = $this.find('.loading')
@@ -221,7 +223,7 @@ function displayEl($this){
             img_container_clone.on('error',function(){
               img_container.remove()
               loader.removeClass('d-flex')
-              $this.find('.img-content img.clone').attr('src',thumb!='self'?thumb:'')
+              $this.find('.img-content img.clone').attr('src',result.thumb!='self'?result.thumb:'')
             })
             $this.find('.img-content img.clone').on('load',function(){
               //setContainerWidth($(this))
@@ -275,7 +277,6 @@ function loadElementFrom(op,coll){
   const urlParams = new URLSearchParams(queryString);
   let extractor = urlParams.get('extractor');
 
-  let query = `/api/${coll}?extractor=${extractor}`
   let pageIndex
   console.log($('#related').attr('data-value'))
   if($('#related').attr('data-value')!='false'){
@@ -288,21 +289,17 @@ function loadElementFrom(op,coll){
     $('#loading_page').hide()
     return
   }
+  let query = `/api/${coll}?extractor=${extractor}&page=${pageIndex}`
 
-  let step = 15
-  let startIndex = parseInt(pageIndex)*step
   if(!$('#related').hasClass('on')){
     console.log(`pageIndex ${pageIndex}`)
     $('.no-res').remove()
     $('#loading_page .loading').show()
     $('#related').addClass('on')
-    let isDone = result = []
-    //console.log(query)
-    $.get(query,function(results){
-      //console.log(results.length)
 
+    $.get(query,function(results){
+      /*
       if((pageIndex)>parseInt(results.length/step)){
-        console.log('overindex')
         if($('.no-res').length==0){
           $('#related').after('<h6 class="text-center p-5 no-res text-white">No more result</h6>')
           $('#related').attr('data-value',false)
@@ -310,236 +307,76 @@ function loadElementFrom(op,coll){
         $('#loading_page').hide()
         return
       }
-      if(results.length>0){
-        let endIndex = startIndex + step
-        let abd_index = 0
-        for(startIndex;startIndex<endIndex;startIndex++){
-              abd_index += 1
-              let item=results[startIndex]
-              //.log(startIndex)
-              if((item!=undefined)&&(isDone.includes(item._id)==false)){
-                result.push(item._id)
-                let id = item._id
-                let url = item.url || false
-                let file = item.imgpath || item.gif || item.mp4 || false
-                let title = item.title
-                let source = item.source
-                let extractor = item.extractor
-                let type = item.type
-                let content = $('.cardContainer.template').clone()
-                //console.log(item)
-                content.removeClass('template')
-                content.removeClass('on')
-                content.find('img').removeClass('on')
-                content.find('.card.img-content').css('background-size','cover')
-                //content.find('.card.img-content').css('background-image','url('+preview+')')
-                content.attr('data-all',JSON.stringify(item))
-                content.attr('data-type',type)
-                content.addClass(`type-${type}`)
-                content.attr('data-source',source)
-                content.attr('data-src',source)
-                content.attr('data-index',abd_index)
-                content.attr('data-url',url)
-                content.attr('data-collection','favoriteImage')
-                if(file){
-                  content.find('video').attr('data-src',file);
-                  //content.find('video').attr('poster',url);
-                  //content.attr('onclick','displayVideo(this)')
-                  //content.find('video').attr('src',gif);
-                }
-                if(url){
-                  if(url.indexOf('.mp4')>=0){
-                    content.addClass('video')
-                    content.find('video').attr('data-src',file);
-                    //content.find('video').attr('poster',item.urls.poster);
-                    //content.find('video').attr('src',url);
-                    //content.find('.poster').attr('src',item.urls.poster)
-                  }
-                }
-                content.find('.poster').attr('data-src',url)
-                content.attr('data-id',id)
-                content.attr('id',id)
-                content.attr('data-extractor',extractor)
-                content.attr('data-title',title)
-                //content.find('video').remove()
+      */
 
-                content.find('.loading').attr('data-id',id)
-                content.find('.loading').hide()
-                //content.find('.t').html(title)
-                content.show()
+      displayItemsLoop(results)
 
-                $('#related').append(content)
-              }
-            }
-        isDone = isDone.concat(result)
-        $('#related').attr('data-value',pageIndex+1)
-        $('#related').removeClass('on')
-        absoluteDesign($('#related'))
-        lazyload_el()
-        $('#loading_page .loading').hide()
-      }else{
-        $('#related').after('<h6 class="text-center p-5 no-res">Nothing founded</h6>')
-        $('#related').attr('data-value',false)
-        $('#loading_page .loading').hide()
-      }
+      $('#related').attr('data-value',pageIndex+1)
+      $('#related').removeClass('on')
+      absoluteDesign($('#related'))
+      lazyload_el()
+      $('#loading_page .loading').hide()
+
     })
     $('#loading_page .loading').hide()
   }
 }
-function _loadElementFrom(op,coll){
-  let isSingle = 'col-lg-6 col-sm-6 col-12'
-  let searchmode =  $('#navbar').attr('data-mode')
-  let ext = $('#navbar').attr('data-ext')
-  let rd = false
-  let query = `/api/${coll}`
-  //let pageIndex = 0
-  let pageIndex = parseInt($('#related').attr('data-value'))
-  if(($.cookie('fav_page')!=undefined)&&(!isNaN($.cookie('fav_page')))){
-    //pageIndex = parseInt($.cookie('fav_page'))
-  }
-  if(isNaN(pageIndex)){
-    pageIndex = 0
-  }
-  let step = 15
-  if(op!=undefined){
-    if(op.rd!=undefined){
-      //$('#related').html('') ;
-      $('#related').removeClass('abs-init');
-      rd = op.rd
-      if(op.rd==false){
-      }
-      $.cookie('favrd', rd, { expires: 7 });
+function displayItemsLoop(results){
+  if(results.length>0){
+    for (let [index, item] of results.entries()) {
+      if((item!=undefined)){
+        let itemId = item._id
+        let url = item.url || false
+        let file = item.imgpath || item.gif || item.mp4 || false
+        let title = item.title
+        let source = item.source
+        let extractor = item.extractor
+        let type = item.type
 
-    }
-    if(op.page!=undefined){
-      //$('#related').html('') ;
-      $('#related').removeClass('abs-init');
-      $.cookie('fav_page', op.page, { expires: 7 });
-      pageIndex = pageIndex + parseFloat(op.page)
-      if(pageIndex<0){
-        pageIndex = 0
-      }
-    }
-    if(op.ex!=undefined){
-      //$('#related').html('') ;
-      $('#related').removeClass('abs-init');
-      $('#navbar').attr('data-ext',$(op.ex).val())
-      $('#related').attr('data-value',0)
-      ext=$(op.ex).val()
-      $.cookie('activ_ext',ext,{expire:7})
-    }
-    if(Object.keys(op).length>0){
-      $('#related').attr('data-value',0)
-    }
-  }
-  let startIndex = parseInt(pageIndex)*step
-  //$('#related').removeClass('abs-init')
-  //$('#related').html('') ;
-  if((ext!=undefined)&&(ext!='false')){
-    query = query+'?extractor='+ext
-  }
-  if($.cookie('favrd')!=undefined){
-    rd = $.cookie('favrd')
-  }else{
-    $.cookie('favrd', rd, { expires: 7 });
-  }
-  if(!$('#related').hasClass('on')){
-  console.log(`pageIndex ${pageIndex}`)
-    $('.no-res').remove()
-    $('#loading_page .loading').show()
-    $('#related').addClass('on')
-    let isDone = result = []
-    //console.log(query)
-    $.get(query,function(results){
-      //console.log(results.length)
-      if(results.length>0){
-        if((rd!='false')&&(pageIndex<=parseInt(results.length / step))){
-          startIndex = Math.floor(Math.random() * parseInt(results.length / step)) * step
+        let content = $('.cardContainer.template').clone()
+        content.removeClass('template')
+        content.removeClass('on')
+        content.find('img').removeClass('on')
+        content.find('.card.img-content').css('background-size','cover')
+        content.attr('data-all',JSON.stringify(item))
+        content.attr('data-type',type)
+        content.addClass(`type-${type}`)
+        content.attr('data-index',index+1)
+        content.attr('data-source',source)
+        content.attr('data-src',source)
+        content.attr('data-url',url)
+        content.attr('data-collection','favoriteImage')
+        if(file){
+          content.find('video').attr('data-src',file);
         }
-        let endIndex = startIndex + step
-        let abd_index = 0
-        for(startIndex;startIndex<endIndex;startIndex++){
-              abd_index += 1
-              let item=results[startIndex]
-              //.log(startIndex)
-              if((item!=undefined)&&(isDone.includes(item._id)==false)){
-                result.push(item._id)
-                let id = item._id
-                let url = item.url || false
-                let mp4 = item.mp4
-                let gif = item.gif || false
-                let title = item.title
-                let source = item.source
-                let extractor = item.extractor
-                let type = item.type
-                let content = $('.cardContainer.template').clone()
-                //console.log(item)
-                content.removeClass('template')
-                content.removeClass('on')
-                content.find('img').removeClass('on')
-                content.find('.card.img-content').css('background-size','cover')
-                //content.find('.card.img-content').css('background-image','url('+preview+')')
-                content.attr('data-all',JSON.stringify(item))
-                content.attr('data-type',type)
-                content.addClass(`type-${type}`)
-                content.attr('data-source',source)
-                content.attr('data-src',source)
-                content.attr('data-index',abd_index)
-                content.attr('data-url',url)
-                content.attr('data-collection','favoriteImage')
-                if(gif){
-                  content.find('video').attr('data-src',gif);
-                  //content.find('video').attr('poster',url);
-                  //content.attr('onclick','displayVideo(this)')
-                  //content.find('video').attr('src',gif);
-                }
-                if(url){
-                  if(url.indexOf('.mp4')>=0){
-                    content.addClass('video')
-                    content.find('video').attr('data-src',url);
-                    //content.find('video').attr('poster',item.urls.poster);
-                    //content.find('video').attr('src',url);
-                    //content.find('.poster').attr('src',item.urls.poster)
-                  }
-                }
-                content.find('.poster').attr('data-src',url)
-                content.attr('data-id',id)
-                content.attr('id',id)
-                content.attr('data-extractor',extractor)
-                content.attr('data-mp4',mp4)
-                content.attr('data-title',title)
-                //content.find('video').remove()
-
-                content.find('.loading').attr('data-id',id)
-                content.find('.loading').hide()
-                //content.find('.t').html(title)
-                content.hide()
-
-                $('#related').append(content)
-              }
-            }
-        isDone = isDone.concat(result)
-        $.cookie('randombg', isDone, { expires: 7 });
-        $('#related').attr('data-value',pageIndex+1)
-        $.cookie('fav_page',pageIndex+1,{expire:7})
-        $('#related').removeClass('on')
-        absoluteDesign($('#related'))
-        lazyload_el()
-        $('#loading_page .loading').hide()
-        if(pageIndex>parseInt(results.length/step)){
-          if($('.no-res').length==0){
-            $('#related').after('<h3 class="text-center p-5 no-res">No more result</h3>')
+        if(url){
+          if(url.indexOf('.mp4')>=0){
+            content.addClass('video')
+            content.find('video').attr('data-src',file);
           }
-          $('#loading_page .loading').hide()
         }
-      }else{
-        $('#related').after('<h3 class="text-center p-5 no-res">No more result</h3>')
-        $('#loading_page .loading').hide()
+        content.find('.poster').attr('data-src',url)
+        content.attr('data-id',itemId)
+        content.attr('id',itemId)
+        content.attr('data-extractor',extractor)
+        content.attr('data-title',title)
+
+        
+        content.find('.loading').attr('data-id',itemId)
+        content.find('.loading').hide()
+
+        content.show()
+
+        $('#related').append(content)
       }
-    })
+    }    
+  }else{
+    $('#related').after('<h6 class="text-center p-5 no-res">Nothing founded</h6>')
+    $('#related').attr('data-value',false)
     $('#loading_page .loading').hide()
   }
 }
+
 function visibleExtractor(){
   let extractor = []
   $('.container-content').each(function(){
@@ -2457,20 +2294,15 @@ function lazyload_el(){
   $(document).find('.cardContainer').not('.template').each(function(index){
     let $this = $(this)
     let _img = $this.find('img').attr('data-src')
-    //let _ot = $(this).offset().top
+
     if(
       ($this.hasClass('lazyload'))&&
       (_getDistanceFromTop($this)<=(vh))&&(_getDistanceFromTop($this)>(vh*(-0.5)))
       ){
       $this.removeClass('lazyload').removeClass('_lazyload')
       $this.addClass('lazyunload')
-      addToViewed($this)
-      /*
-      if(!!document.querySelector('#favorites') || !!document.querySelector('#history')){
-        displayEl($this)
-      }
-      */
       displayEl($this)
+      //addToViewed($this)
     }
     if(($this.hasClass('lazyunload'))&&(_getDistanceFromTop($this)<=(vh*(-3)))){
       //console.log(`${$this.find('img').height()}`)
