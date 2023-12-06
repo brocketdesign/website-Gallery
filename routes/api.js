@@ -50,7 +50,7 @@ router.get('/history', async function(req, res) {
   let result = await new Promise((resolve,reject)=>{
     //db.collection('allMedia').find({'isFavorite':{$exists: true} , 'gif':{ $exists: true } }).sort({'_id':1}).toArray(function(err, results) {
     db.collection('allMedia').find({}).sort({'_id':-1}).toArray(function(err, results) {
-      if(_ext){
+      if(!isNaN(_ext)){
         results.forEach((item, i) => {
           if(item.extractor!=_ext){
             delete results[i]
@@ -69,15 +69,6 @@ router.get('/dlimg', async function(req, res) {
     let searchmode = req.query.searchmode
     extractor = req.query.extractor
   }catch(e){console.log(e)}
-
-  console.log({
-    event:'dlimg',
-    do:req.query.do,
-    imgurl:req.query.imgurl,
-    searchmode:req.query.searchmode,
-    extractor:extractor,
-    dest:req.query.dest
-  })
 if((req.query.do=='true')){
   let path = './public/img/dl/'+req.query.imgurl.substring(req.query.imgurl.lastIndexOf('/')+1)
   let isExist = await new Promise((resolve,reject)=>{
@@ -106,11 +97,10 @@ if((req.query.do=='true')){
       dest: dest,
     })
     .then((path) => {
-      console.log('all done', path)
       res.send(path)
     })
     .catch((error) => {
-      console.log('something goes bad!')
+      console.log(`Error downloading : ${req.query.imgurl}`)
       //console.log(error)
       res.send(false)
     })
@@ -170,15 +160,15 @@ router.post('/search', urlencodedParser, async function (req, res) {
 
   keyword = modifyKeyword(settings, keyword);
 
-  logSearchEvent(searchmode, keyword, page, extractor, topPage);
+  //logSearchEvent(searchmode, keyword, page, extractor, topPage);
 
   await db.collection('history-search').insertOne(createHistorySearch(searchmode, keyword, page, extractor, topPage));
 
   if (topPage != "false") {
     await saveLatestPage(db, searchmode, extractor, page);
   }
-
   let result = await getResult(db, searchmode, extractor, page);
+  console.log(result[0])
   if(!result){
     res.send([])
     return 
@@ -237,16 +227,11 @@ async function getResult(db, searchmode, extractor, page) {
     let result = [];
     if (searchmode != undefined) {
       let c_inDbRes = await db.collection('allMedia').find({ type: searchmode, _id: new ObjectId(extractor), isViewed: { statut: false } }).limit(30).toArray();
-      console.log({
-        event: 'in DB',
-        extractor,
-        type: searchmode,
-        r: c_inDbRes.length
-      });
       if (c_inDbRes.length > 1) {
         result = result.concat(c_inDbRes);
       } else {
         let options = await db.collection('image').findOne({ _id: new ObjectId(extractor) });
+        options.extractor = extractor
         console.log({
           event: 'Scrapping ...',
           extractor,
@@ -285,13 +270,6 @@ router.post('/:myAction/:elementType', urlencodedParser, (req, res) => {
   let resID = 'back';
   var date = new Date();
   var today = (date.getMonth() + 1) + '/' + date.getDate() + '/' + date.getFullYear();
-
-  console.log({
-    myAction: myAction,
-    elementType: elementType,
-    elementTypeID: req.query.elementTypeID,
-    req: req.body
-  });
 
   const handleAction = () => {
     if (myAction == 'editAll') {
@@ -376,10 +354,7 @@ if(elID){
 }
 if(so_b){
   let so_={[so_b]:so_k}
-  console.log({
-    event:'search',
-    search:so_
-  })
+
   if(req.query.so_c=='all'){
     db.collection(dbName).find(so_).toArray((err, results) => {
       res.send(results)
@@ -392,18 +367,11 @@ if(so_b){
 
 }
 if(Object.keys(search)[0]=='favDateToday'){
-  console.log({
-    event:'search',
-    dbName:dbName,
-    search:search
-  })
+
   db.collection(dbName).find(search).toArray((err, results) => {res.send(results);});
 }
 if(!elID && !so_b && (Object.keys(search)[0]!='favDateToday')){
-  console.log({
-    event:'search',
-    dbName:dbName,
-  })
+
   db.collection(dbName).find().sort({'_id':-1}).toArray((err, results) => {
     res.send(results);
   });

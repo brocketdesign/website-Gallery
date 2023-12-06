@@ -143,7 +143,7 @@ function handleSearch(extractor, currPage, option) {
                     content.addClass(`type-${item.type}`)
                     content.attr('data-collection','favoriteImage')
                     content.find('.card.img-content').css('background-size','cover')
-                    content.find('.card-img-top').attr('src',item.thumbnail)
+                    content.find('.card-img-top').attr('src',item.thumbnail!='self'?item.thumbnail:'')
                     content.find('.card-img-top').attr('data-url',item.url)
                     content.find('.card-img-top').attr('data-src',item.url)
                     content.find('.card-img-top').attr('data-thumbnail',item.thumbnail)
@@ -177,6 +177,7 @@ function handleSearch(extractor, currPage, option) {
               //wichDesign($('.content[data-id="'+extractor+'"]'))
               addToViewThis($('.content[data-id="'+extractor+'"]'))
               $('.loading[data-id="'+extractor+'"]').attr('data-value',nextPage)
+              
             }else{
               setTimeout(() => {
                 $('.loading[data-id="'+extractor+'"]').removeClass('on')

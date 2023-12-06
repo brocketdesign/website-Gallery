@@ -25,7 +25,7 @@ block content
                             .c_ct.p-0(data-id=`${info._id}` data-ct=`${ranking[info.site]}`)
                                 .row.d-none(id=`scrollto-${info.site}` style='height: 50px;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:cover;')
                                 .row.p-0
-                                    button.nav-link.extractor.text-center.bg-dark.rounded-0.col-12.col-sm-5(class=[activity] id=`${info.site}` data-bs-toggle="tab" data-bs-target=`${info.site}` type="button" role="tab" aria-controls=`${info.site}` aria-selected=`${selected}` style="overflow:hidden") 
+                                    button.nav-link.extractor.text-center.bg-dark.rounded-0.col-12.col-sm-5(class=[activity] id=`${info._id}` data-bs-toggle="tab" data-bs-target=`${info.site}` type="button" role="tab" aria-controls=`${info.site}` aria-selected=`${selected}` style="overflow:hidden") 
                                         span.domain.p-2.feather(data-value=`${info.siteurl}`)
                                         span.domainlogo.mx-2
                                         span.domainname.badge.badge-secondary(data-value=`${info.site}`) #{info.site}

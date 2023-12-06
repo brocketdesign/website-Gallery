@@ -48,6 +48,7 @@ jQuery(function ($) {
   $.fn.hScroll = function (amount) {
       amount = amount || 120;
       $(this).bind("DOMMouseScroll mousewheel", function (event) {
+        lazyload_el()
           var oEvent = event.originalEvent,
               direction = oEvent.detail ? oEvent.detail * -amount : oEvent.wheelDelta,
               position = $(this).scrollLeft();
@@ -99,7 +100,7 @@ function main(){
     isPorn()
   }
   if(!!document.querySelector('#searchPage')){
-    activ_ext()
+    //activ_ext()
   }
   //loadedVideo()
   //initSearchImage()
@@ -185,7 +186,6 @@ function displayEl($this){
             }else{
               imageDownloader($this,{dest:false,do:false})
             }
-            //console.log(result)
             //$this.find('.img-content').css('background-image',`url("${result.gif}")`)
             $this.find('.img-content img').before(`<video data-src="${result.url}" src="${file}" oncanplay="hidePoster(this);setContainerWidth(this)" type="video/mp4" style="position:absolute;width:${$this.find('.img-content img').css('width')};height: 100%;display:none"  autoplay loop playsinline muted></video>`)
             $this.attr('data-gif',result.gif)
@@ -221,7 +221,7 @@ function displayEl($this){
             img_container_clone.on('error',function(){
               img_container.remove()
               loader.removeClass('d-flex')
-              $this.find('.img-content img.clone').attr('src',thumb)
+              $this.find('.img-content img.clone').attr('src',thumb!='self'?thumb:'')
             })
             $this.find('.img-content img.clone').on('load',function(){
               //setContainerWidth($(this))
@@ -247,6 +247,8 @@ function activ_ext(){
 }
 function searchExtractor(op){
   ext=$(op.ex).val() || op
+  window.location = `/history?extractor=${ext}`
+  return
   reset_content()
   let nf = true
   $('.c_ct').each(function(){
@@ -268,7 +270,12 @@ function searchExtractor(op){
 }
 function loadElementFrom(op,coll){
   let isSingle = 'col-lg-6 col-sm-6 col-12'
-  let query = `/api/${coll}`
+
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  let extractor = urlParams.get('extractor');
+
+  let query = `/api/${coll}?extractor=${extractor}`
   let pageIndex
   console.log($('#related').attr('data-value'))
   if($('#related').attr('data-value')!='false'){
@@ -849,7 +856,8 @@ function tools(){
     $('#formInput').attr('placeholder',$.cookie('latestSearch'))
   }
   $('.loadmore').on('click',function(){
-    loadResultSearch({reset:false,triger:'true',extractor:$(this).attr('data-id')})
+    //loadResultSearch({reset:false,triger:'true',extractor:$(this).attr('data-id')})
+    window.location=`/history?extractor=${$(this).attr('data-id')}`
   })
   $('.reset_page').on('click',function(){
     let extractor = $(this).attr('data-extractor')
@@ -1615,8 +1623,6 @@ function afterAllisDone(){
 
   })
 
-  let ext = $.cookie('activ_ext')
-  if((ext==undefined)||(ext=='false')){
     let extractors = visibleExtractor()
     extractors.forEach(extractor => {
       if(!$('.loading.search[data-id="'+extractor+'"]').hasClass('visibleExtractor-on')){
@@ -1625,10 +1631,7 @@ function afterAllisDone(){
         //extractorBanner({extractor:extractor})
       }
     });
-  }
-  if((ext!='false')&&(ext!=undefined)){
-    loadResultSearch({reset:false,triger:'true',extractor:ext})
-  }
+
   var timeoutId
   let cScroll=0
   $(window).on('scroll', function () {

@@ -9,6 +9,7 @@ const ObjectId = require('mongodb').ObjectId;
 const asnyScrap = require('./anyScrap')
 async function pornPic(option,page,extractor,db){
     if(page == undefined){page=1}
+    option.extractor = extractor
     let result = await searchInfo(page,option,db)
     console.log({
         site:extractor,

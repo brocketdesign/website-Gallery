@@ -34,7 +34,7 @@ async  function asnyScrap($,option,vUrl,db){
                     try{
                       articles.each((index, element) => {
                           //console.log($(element).html())
-                          let obj = {title: '',  url: '',source:'', preview: '', duration: '', site:option.site, extractor: option.site }
+                          let obj = {title: '',  url: '',source:'', preview: '', duration: '', site:option.site, extractor: option.extractor }
                           obj.title = $(element).text()
 
                           obj.source = $(element).find('a:last-child').attr('href')
@@ -127,7 +127,7 @@ async  function asnyScrap($,option,vUrl,db){
         for(let i=0;i<isJSON.data.children.length;i++){
             let item = isJSON.data.children[i]
             //console.log(item.data)
-            let obj = {title: '',  url: '',source:'', site:option.site, extractor: option.site }
+            let obj = {title: '',  url: '',source:'', site:option.site, extractor: option.extractor }
             obj.title = item.data.title
             obj.thumbnail = item.data.thumbnail
             try{
