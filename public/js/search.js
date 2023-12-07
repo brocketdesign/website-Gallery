@@ -154,7 +154,9 @@ function handleSearch(extractor, currPage, option) {
                     content.attr('data-id',item._id)
                     content.attr('data-extractor',item.extractor)
                     content.attr('data-url',item.url)
-                    content.attr('data-title',item.title)  
+                    content.attr('data-title',item.title)
+                    content.find('video').remove()
+  
                     content.find('.loading').attr('data-id',item._id)
                     content.find('.loading').attr('data-value',item.url)
                     content.find('.loading').hide()
