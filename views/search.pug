@@ -64,6 +64,7 @@ block content
             div.template.lazyload.col-sm-6.col-lg-3.col-12.cardContainer.image.ccm.p-1(style="display:none;width:auto" onclick="setContainerWidth(this)")
                 div.card.img-content.border-0(style='width: 100%;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:cover;')
                     img.card-img-top.poster(src alt data-value style="opacity:1;width:100%" )
+                    video(type="video/mp4" style="position:absolute;height: 100%;display:none"  autoplay loop playsinline muted)
                     .favAnim.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;left: 0;color: white;height: auto;width:auto;padding:10px;") 
                         span(data-feather="heart" style="width:5vw;height:5vw;max-width:30px;max-height:30px") FAV
                     .typeAnim-gif.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;right: 0;color: white;height: auto;width:auto;padding:10px;") 
