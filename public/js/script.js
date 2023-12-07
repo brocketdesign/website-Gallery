@@ -169,43 +169,43 @@ function favoriteEdit(){
   },'#favorite .cardContainer')
   */
 }
-function displayEl($this){
+function displayGif($this){
   let itemId = $this.attr('data-id')
-
-  if(!$this.hasClass('displayEl')){
-    
-    if($this.attr('data-type')=='gif'){
-        if(!$this.hasClass('gif')){
-          $this.find('.loading').fadeIn().addClass('d-flex')
-          $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
-            console.log(result)
-            let file = result.gif
-            if(result.imgpath){
-              file = result.imgpath
-            }else{
-              imageDownloader($this,{dest:false,do:false})
-            }
-            //$this.find('.img-content').css('background-image',`url("${result.gif}")`)
-            $this.css({height:'150px'})
-            $this.find('.img-content img').before(`<video data-src="${result.url}" src="${file}" oncanplay="hidePoster(this);setContainerWidth(this)" type="video/mp4" style="position:absolute;width:${$this.find('.img-content img').css('width')};height: 100%;display:none"  autoplay loop playsinline muted></video>`)
-            $this.attr('data-gif',result.gif)
-            $this.find('.typeAnim-gif').addClass('done').wrap(`<a target='_blank' href="${file}"></a>`)
-            $this.find('.loading').hide().removeClass('d-flex')
-            $this.addClass('displayEl')
-          })
-        }
+  $this.find('.loading').fadeIn().addClass('d-flex')
+  $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
+    let file = result.gif
+    if(result.imgpath){
+      file = result.imgpath
+    }else{
+      imageDownloader($this,{dest:false,do:false})
     }
-    if($this.attr('data-type')=='image'){
-      if($this.find('.img-content img.clone').length==0){
+    $this.css({height:'150px'})
+    $this.find('video').attr('data-src',result.url)
+    $this.find('video').attr('src',file)
+    $this.find('video').css({'width':`${$this.find('.img-content img').css('width')}`})
+    $this.find('video').on('canplay', function() {
+      hidePoster(this); 
+      setContainerWidth(this);
+      $this.addClass('displayEl')
+    });
+    $this.attr('data-gif',result.gif)
+    $this.find('.typeAnim-gif').addClass('done').wrap(`<a target='_blank' href="${file}"></a>`)
+    $this.find('.loading').hide().removeClass('d-flex')
+    if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
+      absoluteDesign($('#related'))
+    }
+  })
+}
+function displayImage($this){
+  let itemId = $this.attr('data-id')
+         if($this.find('.img-content img.clone').length==0){
         $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
-          console.log(result)
           let src
           if(result.imgpath){
             src = result.imgpath
           }else{
             imageDownloader($this,{dest:false,do:false})
           }
-          console.log(src!=result.thumb)
           if(src!=result.thumb){
             let img_container_clone = $this.find('.img-content img').clone()
             let img_container = $this.find('.img-content img')
@@ -229,17 +229,33 @@ function displayEl($this){
               //setContainerWidth($(this))
             })
           }
+          if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
+            absoluteDesign($('#related'))
+          }
         })
 
 
       }
+}
+function displayEl($this){
+  if(!$this.hasClass('displayEl')){
+    
+    if($this.attr('data-type')=='gif'){
+      displayGif($this)
+    }
+    if($this.attr('data-type')=='image'){
+      displayImage($this)
     }
   }
-  if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
-    absoluteDesign($('#related'))
-  }
 }
-
+function hidePoster(el){
+  //console.log(`hide poster ${$(el).attr('data-src')}`)
+  $('img.poster[data-id="'+$(el).attr('data-id')+'"]').remove()
+  $(document).find('.loading[data-id="'+$(el).attr('data-id')+'"]').remove()
+  $(el).fadeIn()
+  $(el).css('position','relative')
+  $(el).closest('cardContainer').addClass('displayEl')
+}
 function activ_ext(){
   let ext = $.cookie('activ_ext')
   if(ext!=undefined){
@@ -1034,14 +1050,8 @@ function displayVideo(el){
     $(el).addClass('video-on')
   }
 }
-function hidePoster(el){
-  //console.log(`hide poster ${$(el).attr('data-src')}`)
-  $('img.poster[data-url="'+$(el).attr('data-src')+'"]').remove()
-  $(document).find('.loading[data-value="'+$(el).attr('data-src')+'"]').remove()
-  $(el).fadeIn()
-  $(el).css('position','relative')
-}
-function displayGif(selector){
+
+function _displayGif(selector){
   selector.find('.loading').show()
   let url = selector.attr('data-link')
   let extractor= selector.attr('data-extractor')
@@ -2291,8 +2301,7 @@ function favoriteThumbNav(el){
 }
 function lazyload_el(){
   //console.log('lazyload_el')
-  $(document).find('.cardContainer').not('.template').each(function(index){
-    let $this = $(this)
+  $(document).find('.cardContainer.lazyload').not('.template').slice(0, 3).each(function(index) {    let $this = $(this)
     let _img = $this.find('img').attr('data-src')
 
     if(
