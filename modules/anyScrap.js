@@ -118,12 +118,24 @@ async  function asnyScrap($,option,vUrl,db){
             */
         }else{
           //REDDIT
-          db.collection('image').findOne({'site':option.site}, (err, result) => {
-            if(result){
-              let elID = result._id
-              db.collection('image').updateOne({ _id: new ObjectId(elID) }, { $set: { after: isJSON.data.after } }, (err, result) => {  });
-            }
-          })
+            const redditData = await db.collection('image').findOne({'site':option.site})
+            let elID = redditData._id
+            await db.collection('image').updateOne(
+                { _id: new ObjectId(elID) }, 
+                { $set: { after: isJSON.data.after, pages: {[option.page]:isJSON.data.after} } },
+                { upsert: true },  // This is the magic trick!
+                (err, result) => {
+                  if (err) {
+                    // Handle the error like a pro
+                    console.error('Oops! Something went wrong:', err);
+                  } else {
+                    // Celebrate your success!
+                    console.log('Upsert successful:', result);
+                  }
+                }
+              );
+                          
+          
         for(let i=0;i<isJSON.data.children.length;i++){
             let item = isJSON.data.children[i]
             //console.log(item.data)

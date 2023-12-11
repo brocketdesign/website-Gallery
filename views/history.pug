@@ -7,14 +7,19 @@ block content
                 span(data-feather="arrow-left") Prev
             button.d-none.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick=`loadElementFrom({page:'0'},'${title}')`)
                 span(data-feather="arrow-right") Next
-            button.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick="relay_setColum('fav-cont')")
+            button.bg-custom-dark-blue.text-white.col.border.border-dark.rounded-0.order(onclick="setColum()")
                 span(data-feather="grid") Grid
             select.col.rounded-0.extractor.d-none(onchange="loadElementFrom({ex:this},'history')")
               option(value='false') All
               each ext in extractors 
                   option(value=`${ext}`) #{ext}
-        div.template._lazyload.lazyload.col-sm-6.col-md-4.col-lg-4.col-12.cardContainer.image.ccm.p-1(style="display:none;height:auto" data-value)
+        label.form-label(for="grid") 1行あたりの要素数
+            div#range(data-mode=mode)
+                input.form-range(type="range" id="grid-range" min="1" max="4" value="3")
+  
+        div.template.lazyload.mb-2.px-1.masonry-item.custom-carousel-item.grid-item.cardContainer.image.ccm.p-1.bg-light.border.border-dark(style="display:none;min-height:100px;height:auto" data-value)
             div.card.content.img-content.border-0(style='width: 100%;overflow:hidden;background-position:center;background-repeat:no-repeat;background-size:contain;')
+                video(type="video/mp4" style="position:absolute;height: 100%;display:none" autoplay loop playsinline muted)
                 img.card-img-top.poster(src alt data-value style="max-width:100%;opacity:1")
                 .favAnim.position-absolute.justify-content-center.align-items-center( data-value style="display:none;top: 0;left: 0;color: white;height: 100%;width:auto;padding:10px;") 
                     span(data-feather="heart" style="width:5vw;height:5vw;max-width:30px;max-height:30px") FAV
@@ -32,6 +37,6 @@ block content
                         span.badge.bg-white.text-dark.border.border-dark.rounded-circle.p-1.shadow(data-feather="trash") Delete
                     span.zoom_in.text-dark.rounded-circle.mx-3.d-none.d-lg-inline(data-value style="cursor: pointer;") 
                         span.badge.bg-white.text-dark.border.border-dark.rounded-circle.p-1.shadow(data-feather="zoom-in") Zoom
-        div#related.row(data-relay="fav-cont")
+        #related.masonry-container.row.custom-carousel-container
         #loading_page.search.text-center.text-white.w-100.my-5
             .loading.spinner-border(role="status" data-value="1" style="display:inline-block")

@@ -4,7 +4,6 @@ const got = require('got');
 const axios = require('axios');
 const fetch = require('node-fetch')
 async function redgif(item,db){
-  //console.log(item)
       try{
         const response = await fetch(`https://api.redgifs.com/v2/gifs/${item.name}`)
         const data = await response.json();
@@ -22,6 +21,7 @@ async function redgif(item,db){
             }
         })
       }catch(e){
+        console.log(item)
         console.log(e)
       }
 }

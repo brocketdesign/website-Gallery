@@ -3,41 +3,8 @@ const vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeig
 let win = $(window)
 let ww = $(window).width()
 let wh = $(window).height()
-let NumSlide = [4,3,3]
-const slick_option ={
-  dots: false,
-  arrows: true,
-  infinite: false,
-  slidesToShow: NumSlide[0],
-  slidesToScroll: NumSlide[0],
-  speed: 300,
-  autoplay: false,
-  autoplaySpeed: 2000,
-  cssEase: 'linear',
-  focusOnSelect:false,
-  responsive: [
-    {
-      breakpoint: 1080,
-      settings: {
-        slidesToShow: NumSlide[1],
-        slidesToScroll: NumSlide[1],
-        infinite: false,
-        dots: false,
-        arrows: true,
-      }
-    },
-    {
-      breakpoint: 780,
-      settings: {
-        slidesToShow: NumSlide[2],
-        slidesToScroll: NumSlide[2],
-        infinite: false,
-        dots: false,
-        arrows: true,
-      }
-    },
-  ]
-}
+const YOUR_LARGE_SCREEN_BREAKPOINT = 992
+
 document.ondblclick = function(evt) {
     if (window.getSelection)
         window.getSelection().removeAllRanges();
@@ -48,7 +15,6 @@ jQuery(function ($) {
   $.fn.hScroll = function (amount) {
       amount = amount || 120;
       $(this).bind("DOMMouseScroll mousewheel", function (event) {
-        lazyload_el()
           var oEvent = event.originalEvent,
               direction = oEvent.detail ? oEvent.detail * -amount : oEvent.wheelDelta,
               position = $(this).scrollLeft();
@@ -75,7 +41,51 @@ jQuery(function ($) {
       })
   };
 });
-//lazyload();
+
+const handleGridRange = () => {
+  if($('#range').data('mode')==1 && $(window).width() <= 768){
+      $('#grid-range').val(1);
+      updategridlayout(1)
+      //$('#range').hide()
+      //return
+  }
+  if($('#range').data('mode')== 1 && $(window).width() > 768){
+      $('#grid-range').val(2);
+      updategridlayout(2)
+      //$('#range').hide()
+      //return
+  }
+  // Check if the local variable exists
+  var rangeState = localStorage.getItem('rangeState');
+
+  // Initialize the range input based on the local variable
+  if (rangeState !== null) {
+    $('#grid-range').val(rangeState);
+    updategridlayout(rangeState)
+  }
+
+  // Save the state of the range input to local storage when it's toggled
+  $('#grid-range').change(function() {
+    const value = $(this).val();
+    localStorage.setItem('rangeState', value);
+    console.log(`range : ${value}`)
+    updategridlayout(value); // Call the function to update the grid layout with the new value
+  });
+};
+
+$(document).ready(function() {
+
+  // Call LazyLoad on scroll
+  $(window).scroll(function() {
+      LazyLoad();
+  });
+
+  // Call LazyLoad on window resize
+  $(window).resize(function() {
+      LazyLoad();
+  });
+});
+
 $(document).ready(function(){ main() })
 function main(){
 
@@ -88,6 +98,7 @@ function main(){
   tabLink()
   updateSetting()
   randombg()
+  handleGridRange();
   imageDownloaderButton({dest:false,do:false})
 
   if(!!document.querySelector('#favorites')){
@@ -99,17 +110,37 @@ function main(){
   if(!!document.querySelector('#safePage')){
     isPorn()
   }
-  if(!!document.querySelector('#searchPage')){
-    //activ_ext()
-  }
-  //loadedVideo()
-  //initSearchImage()
-  //searchImageForm()
-  //navLink()
-  //transformHastag()
-  //preferencies()
+  LazyLoad();
   afterAllisDone()
 }
+let msnry = null ;
+const handleMasonry = () => {
+    if(
+        document.querySelector('.masonry-container')
+        && window.innerWidth >= YOUR_LARGE_SCREEN_BREAKPOINT 
+        ||
+        document.querySelector('.masonry-container')
+        && $('#grid-range').val() >= 2
+
+    ){
+        msnry = new Masonry('.masonry-container', {
+            itemSelector: '.masonry-item:not([style*="display: none"])', 
+            columnWidth: '.masonry-item',
+            percentPosition: true
+        });
+    }
+}
+const updateMasonryLayout = () => {
+    if (msnry) {
+      msnry.reloadItems();
+      msnry.layout();
+      
+    }
+}
+// Masonry setup
+$(window).on('load', function() {
+    handleMasonry()
+});
 $(document).on('click','.removeTag',function(){
 
   let tag = $(this).attr('data-value')
@@ -120,7 +151,6 @@ $(document).on('click','.removeTag',function(){
   })
 
   $.post('/api/dataTags',{remove:tag},function(){
-    //location.reload()
     $this.fadeOut()
   })
 
@@ -170,7 +200,7 @@ function favoriteEdit(){
   */
 }
 function displayGif($this){
-  let itemId = $this.attr('data-id')
+  let itemId = $this.attr('id')
   $this.find('.loading').fadeIn().addClass('d-flex')
   $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
     let file = result.gif
@@ -179,25 +209,34 @@ function displayGif($this){
     }else{
       imageDownloader($this,{dest:false,do:false})
     }
-    $this.css({height:'150px'})
+    //$this.css({height:'150px'})
     $this.find('video').attr('data-src',result.url)
     $this.find('video').attr('src',file)
-    $this.find('video').css({'width':`${$this.find('.img-content img').css('width')}`})
+    let contentWidth = $this.find('.img-content img').css('width')
+    if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
+      contentWidth = '100%'
+    }
+    $this.find('video').css({
+      'width':contentWidth,
+      'position':'relative'
+    })
+    $this.attr('data-gif',result.gif)
+    $this.find('.typeAnim-gif').addClass('done').wrap(`<a target='_blank' href="${file}"></a>`)
+    $this.find('.loading').hide().removeClass('d-flex').addClass('d-none')
+    $this.find('.poster').attr('src',result.thumbnail)
     $this.find('video').on('canplay', function() {
       hidePoster(this); 
       setContainerWidth(this);
       $this.addClass('displayEl')
+      $this.removeClass('lazyload')
     });
-    $this.attr('data-gif',result.gif)
-    $this.find('.typeAnim-gif').addClass('done').wrap(`<a target='_blank' href="${file}"></a>`)
-    $this.find('.loading').hide().removeClass('d-flex')
     if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
-      absoluteDesign($('#related'))
+      updateMasonryLayout()
     }
   })
 }
 function displayImage($this){
-  let itemId = $this.attr('data-id')
+  let itemId = $this.attr('id')
          if($this.find('.img-content img.clone').length==0){
         $.get('/api/db/allMedia?so_b=_id&so_k='+itemId,function(result){
           let src
@@ -206,7 +245,6 @@ function displayImage($this){
           }else{
             imageDownloader($this,{dest:false,do:false})
           }
-          if(src!=result.thumb){
             let img_container_clone = $this.find('.img-content img').clone()
             let img_container = $this.find('.img-content img')
             let loader = $this.find('.loading')
@@ -227,10 +265,13 @@ function displayImage($this){
             })
             $this.find('.img-content img.clone').on('load',function(){
               //setContainerWidth($(this))
+              $this.find('.img-content img.clone').addClass('displayEl')
+              $this.find('.img-content img.clone').removeClass('lazyload')
+
             })
-          }
+          
           if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
-            absoluteDesign($('#related'))
+
           }
         })
 
@@ -239,7 +280,9 @@ function displayImage($this){
 }
 function displayEl($this){
   if(!$this.hasClass('displayEl')){
-    
+
+    $this.css({"background-color":" #72727b !important"})
+    console.log($this.attr('id'))
     if($this.attr('data-type')=='gif'){
       displayGif($this)
     }
@@ -287,102 +330,39 @@ function searchExtractor(op){
   $.cookie('activ_ext',ext,{expire:7})
 }
 function loadElementFrom(op,coll){
-  let isSingle = 'col-lg-6 col-sm-6 col-12'
-
-  const queryString = window.location.search;
-  const urlParams = new URLSearchParams(queryString);
-  let extractor = urlParams.get('extractor');
-
-  let pageIndex
-  console.log($('#related').attr('data-value'))
-  if($('#related').attr('data-value')!='false'){
-    pageIndex = parseInt($('#related').attr('data-value'))
-    if(isNaN(pageIndex)){
-      pageIndex = 0
-    }
-  }else{
-    console.log('return')
-    $('#loading_page').hide()
-    return
-  }
+  const extractor = getUrlParam('extractor')
+  const pageIndex = getPageIndex(); 
+  if(!Number.isInteger(pageIndex)){return}
   let query = `/api/${coll}?extractor=${extractor}&page=${pageIndex}`
 
   if(!$('#related').hasClass('on')){
-    console.log(`pageIndex ${pageIndex}`)
+
+    console.log({extractor,pageIndex})
     $('.no-res').remove()
     $('#loading_page .loading').show()
     $('#related').addClass('on')
 
     $.get(query,function(results){
-      /*
-      if((pageIndex)>parseInt(results.length/step)){
-        if($('.no-res').length==0){
-          $('#related').after('<h6 class="text-center p-5 no-res text-white">No more result</h6>')
-          $('#related').attr('data-value',false)
-        }
-        $('#loading_page').hide()
-        return
-      }
-      */
-
       displayItemsLoop(results)
 
+      if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
+        updateMasonryLayout()
+      }
       $('#related').attr('data-value',pageIndex+1)
       $('#related').removeClass('on')
-      absoluteDesign($('#related'))
-      lazyload_el()
       $('#loading_page .loading').hide()
-
+      //LazyLoad()
+      console.log(`Load ${results.length} items`)
     })
-    $('#loading_page .loading').hide()
   }
 }
 function displayItemsLoop(results){
   if(results.length>0){
     for (let [index, item] of results.entries()) {
       if((item!=undefined)){
-        let itemId = item._id
-        let url = item.url || false
-        let file = item.imgpath || item.gif || item.mp4 || false
-        let title = item.title
-        let source = item.source
-        let extractor = item.extractor
-        let type = item.type
-
         let content = $('.cardContainer.template').clone()
-        content.removeClass('template')
-        content.removeClass('on')
-        content.find('img').removeClass('on')
-        content.find('.card.img-content').css('background-size','cover')
-        content.attr('data-all',JSON.stringify(item))
-        content.attr('data-type',type)
-        content.addClass(`type-${type}`)
-        content.attr('data-index',index+1)
-        content.attr('data-source',source)
-        content.attr('data-src',source)
-        content.attr('data-url',url)
-        content.attr('data-collection','favoriteImage')
-        if(file){
-          content.find('video').attr('data-src',file);
-        }
-        if(url){
-          if(url.indexOf('.mp4')>=0){
-            content.addClass('video')
-            content.find('video').attr('data-src',file);
-          }
-        }
-        content.find('.poster').attr('data-src',url)
-        content.attr('data-id',itemId)
-        content.attr('id',itemId)
-        content.attr('data-extractor',extractor)
-        content.attr('data-title',title)
-
-        
-        content.find('.loading').attr('data-id',itemId)
-        content.find('.loading').hide()
-
+        content = resetTemplate(content,item)
         content.show()
-
         $('#related').append(content)
       }
     }    
@@ -1482,7 +1462,6 @@ function afterAllisDone(){
   var timeoutId
   let cScroll=0
   $(window).on('scroll', function () {
-    lazyload_el()
     if ($(window).scrollTop() == 0){
       $('footer').fadeIn();
     }else{
@@ -1633,179 +1612,9 @@ function loadedVideo(){
     var loadPercentage = loadEndPercentage - loadStartPercentage;
   });
 }
-function relay_setColum(el_id){
-console.log({
-  event:'relay_setColum',
-  el_id:el_id
-})
-  setColum($('[data-relay="'+el_id+'"]'))
-}
-function setColum(el_sec){
-  let ww=$(window).width()
-  let abs_col = parseInt(el_sec.attr('abs-col'))
-  if(abs_col==undefined){
-    abs_col = 3
-    if(ww<=800){
-      abs_col = 2
-    }
-  }else{
-    if(abs_col<3){
-      abs_col+=1
-    }else{
-      abs_col=1
-    }
-  }
-  $.cookie('abs-col',abs_col,{expire:1})
-  el_sec.attr('abs-col',abs_col)
-  el_sec.removeClass('abs-init')
-  el_sec.find(".abs-active").each(function(){
-    $(this).removeClass('abs-active')
-  })
-  console.log({
-    event:'setColum',
-    abs_col:abs_col
-  })
-  absoluteDesign(el_sec)
-}
-function wichDesign(el_sec){
-  let design = el_sec.data('design')
-  if(design!='grid'){
-    flexibleSlider(el_sec)
-    el_sec.attr('data-design','slider')
-  }else{
-    absoluteDesign(el_sec)
-    el_sec.attr('data-design','grid')
-  }
-}
-function absoluteDesign(el_sec){
-  //console.log('absoluteDesign')
-  el_sec.attr('data-design','grid')
-  let ww=$(window).width()
-  let ext = el_sec.attr('abs-ext') || el_sec.attr('id')
-  let rand = Math.random().toString(16).substr(2, 8)+'-'+ext;
-  let abs_col = el_sec.attr('abs-col')
-  let abs_cookie = $.cookie('abs-col')
-  if(abs_col==undefined){
-    abs_col = 3
-    if(ww<=800){
-      abs_col = 2
-    }
-    if(abs_cookie!=undefined){
-      abs_col=abs_cookie
-    }
-  }
-  if(abs_col!='false'){
-    //$('.slick-view.slick-control').hide()
-    //$('.slick-view.slick-control.slide').show()
-    if(el_sec.hasClass('slick-initialized')){
-      el_sec.slick('unslick')
-      el_sec.find('.img-content').addClass('bg-cover')
-    }
-      el_sec.off('DOMMouseScroll mousewheel')
-      el_sec.removeClass('d-flex flex-row flexibleSlide-initialized')
-      el_sec.addClass('row')
-      el_sec.css({
-        'overflow-y': 'auto',
-        'overflow-x': 'auto',
-        'width':'auto',
-        'height':'fit-content'
-      })
 
-    el_sec.find('.cardContainer').each(function(){$(this).css('height','auto')})
-    el_sec.find('img').each(function(){$(this).css({
-      'width':'100%',
-      'height':'auto'
-    })})
-    el_sec.find('video').each(function(){$(this).css({
-      'width':'100%',
-      'height':'auto'
-    })})
-    if(!el_sec.hasClass('abs-init')){
-      for(let i=1;i<=abs_col;i++){
-        el_sec.append('<div class="col p-0 abs-col abs-col-'+i+'" data-id="'+rand+'" abs-ext="'+ext+'"></div>')
-      }
-      el_sec.addClass('abs-init')
-    }else{
-      rand = el_sec.find('.abs-col').attr('data-id')
-    }
-      el_sec.find('.cardContainer').not(".abs-active").each(function(){
-        let el_index = parseInt($(this).attr('data-index'))
-        let el_col = el_index % abs_col ;
-        if(el_col==0){el_col=abs_col}
-        $(this).addClass('abs-active')
-        $(this).css({
-          'width':'100%',
-          'height':'fit-content'
-        })
-        $(this).find('.card.img-content').css('height','auto')
-        $(this).attr("class").split(/\s+/).forEach(el => {
-          if(el.indexOf('col')>=0){
-            $(this).removeClass(el)
-          }
-        });
-        $(this).appendTo($('.abs-col-'+el_col+'[data-id="'+rand+'"]'));
-    })
-    let tt = 0
-    for(let j=0;j<el_sec.find('.cardContainer').not('.abs-visible').length;j++){
-        for(let i=1;i<=parseInt(abs_col);i++){
-          setTimeout(() => {
-            $('.abs-col-'+i).find('.cardContainer').not('.abs-visible').eq(0).addClass('abs-visible').fadeIn('slow')
-          }, tt);
-          tt+=300
-        }
-        i=1
-    }
-    $(document).find('.abs-col[abs-ext="'+ext+'"]').each(function(){
-      if($(this).attr('data-id')!=rand){
-        $(this).remove()
-      }
-    })
-  }
-}
-function _absoluteDesign(){
-  let ww=$(window).width()
-  let ratio=0
-  let searchmode = $('#navbar').attr('data-mode')
-  if((!document.querySelector('#single'))&&(searchmode!='any') &&(ww>=600)){
-      //let minHeigh = parseInt($('#related').css('height').replace('px',''))
-      //$('#related').css('height','auto')
-      $(document).find('#related').find('.cardContainer').each(function(i, value){
-        let w = parseInt($(this).css('width').replace('px',''))
-        ratio=(ww/w).toFixed(0)
-        let prc=100/ratio
-        let cprc = (i%ratio)*prc
-        let topdiv = i-ratio
-        let topdivheight = sumDivColumn(i,ratio)
-        /*
-        console.log({
-          i:i,
-          ratio:ratio,
-          topdiv:topdiv,
-          left:cprc+'%',
-          topdivheight:topdivheight,
-        })
-        */
-        let absoluteTop =0
-        if(topdiv>=0){
-          absoluteTop=topdivheight
-        }
-        $(this).css({
-          position:'absolute',
-          left:cprc+'%',
-          top:absoluteTop+'px'
-        })
-        $(this).fadeIn()
-      })
-      /*
-      console.log({
-        total_height:$(document).find('#related').find('.cardContainer').last().attr('data-upward')
-      })
-      */
 
-      $('#related').css('height',$(document).find('#related').find('.cardContainer').last().attr('data-upward'))
 
-  }
-}
 function sumDivColumn(index,ratio){
   let result = 0
   let upward=0
@@ -1989,7 +1798,6 @@ function slickControler(el){
         if($this.hasClass('off')){
           destroyAbs($slick)
           flexibleSlider($slick)
-          absoluteDesign($slick)
         }
       }
       if($this.closest('.slick-control').hasClass('slick-backtop')){
@@ -2007,8 +1815,8 @@ function transformSlider(extractor){
   }
   slickControl($slick)
   $slick.slick(slick_option);
-  absoluteDesign($slick)
 
+  
 }
 function isPorn(){
 
@@ -2299,27 +2107,15 @@ function favoriteThumbNav(el){
     })
   }
 }
-function lazyload_el(){
-  //console.log('lazyload_el')
-  $(document).find('.cardContainer.lazyload').not('.template').slice(0, 3).each(function(index) {    let $this = $(this)
-    let _img = $this.find('img').attr('data-src')
-
+function LazyLoad(){
+  $(document).find('.lazyload').not('.template').slice(0, 3).each(function(index) {    
+    let $this = $(this)
     if(
       ($this.hasClass('lazyload'))&&
       (_getDistanceFromTop($this)<=(vh))&&(_getDistanceFromTop($this)>(vh*(-0.5)))
       ){
-      $this.removeClass('lazyload').removeClass('_lazyload')
-      $this.addClass('lazyunload')
-      displayEl($this)
-      //addToViewed($this)
-    }
-    if(($this.hasClass('lazyunload'))&&(_getDistanceFromTop($this)<=(vh*(-3)))){
-      //console.log(`${$this.find('img').height()}`)
-      $this.addClass('lazyload')
-      $this.removeClass('lazyunload')
-      $this.find('img').css('height',`${$this.find('img').height()}px`)
-      $this.find('img').attr('src','')
-      //console.log(`lazyload ${index} - ${_getDistanceFromTop($this)} / ${(vh*(-2))}`)
+        displayEl($this)
+        //addToViewed($this)
     }
   })
 }
@@ -2636,6 +2432,10 @@ function makeSearchTag(el){
   $('#index-tags').collapse('hide')
 }
 function setContainerWidth(el){
+
+  if(!!document.querySelector('#favorite') || !!document.querySelector('#history')){
+    return
+  }
   let ccl = $(el)
   let $slick = ccl.closest('.content')
   if(!$slick.hasClass('setContainerWidth')){
@@ -2815,4 +2615,55 @@ function toggleBreakerInit(){
      return true
    }
    return false
+}
+function resetTemplate(content,item){
+  const itemId = item._id
+  const isGif = !!item.gif ? 'gif' : 'image'
+  content.removeClass('template')
+  content.removeClass('on')
+  content.find('img').removeClass('on')
+  content.attr('data-type',isGif)
+  if(isGif){$('.typeAnim-gif').show()}
+  content.attr('id',itemId)
+  content.find('video').attr('data-id',itemId)
+  content.find('.favAnim').attr('data-id',itemId)
+  content.find('.poster').attr('data-id',itemId)
+  content.find('.poster').attr('src',item.thumbnail)
+  content.find('.loading').attr('data-id',itemId)
+  content.find('.loading').hide()
+  return content
+}
+function getUrlParam(paramter){
+  const queryString = window.location.search;
+  const urlParams = new URLSearchParams(queryString);
+  return urlParams.get(paramter);
+}
+function getPageIndex(){
+  if($('#related').attr('data-value')!='false'){
+    let pageIndex = parseInt($('#related').attr('data-value'))
+    if(isNaN(pageIndex)){
+      pageIndex = 0
+    }
+    return pageIndex
+  }else{
+    $('#loading_page').hide()
+    return false
+  }
+}
+function updategridlayout(value) {
+  // Function implementation goes here
+  // This function will be called when the range input is changed
+  // You can update the grid layout or perform any other actions based on the 'value'
+
+  // Remove any existing col- classes from grid items
+  $('.grid-item').removeClass(function (index, className) {
+    return (className.match(/(^|\s)col-\S+/g) || []).join(' ');
+  });
+
+  // Calculate the column width class based on the range value
+  const colClass = `col-${12 / value}`;
+
+  // Add the new col- class to each grid item
+  $('.grid-item').addClass(colClass);
+  updateMasonryLayout()
 }

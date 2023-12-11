@@ -10,6 +10,7 @@ const asnyScrap = require('./anyScrap')
 async function pornPic(option,page,extractor,db){
     if(page == undefined){page=1}
     option.extractor = extractor
+    option.page = page
     let result = await searchInfo(page,option,db)
     console.log({
         site:extractor,
@@ -60,13 +61,15 @@ async function searchInfo(page,option,db){
     }
 
     if (url_href.indexOf('reddit.com') >= 0) {
-        
+        console.log('`Reddit scrap')
         try {
           let result = await db.collection('image').findOne({ 'site': option.site });
-          
           if (result) {
             if(result.after){
-            url_href = url_href + result.after;
+                url_href = url_href + result.after;
+                console.log(page,result.after)
+            }else{
+                console.log(`No after id founded`)
             }
           } else {
             console.log('No result found for the site:', option.site);

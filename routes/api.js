@@ -56,19 +56,25 @@ router.get('/history', async function(req, res) {
     extractor,page
   })
   let result = []
-  
+  let promise1 = getResult(db, 'video', extractor, page);
+  let promise2 
   if(ObjectId.isValid(extractor)){
-    result = await db.collection('allMedia').find({extractor}).sort({'_id':-1})
+    promise2 =  db.collection('allMedia').find({extractor}).sort({'_id':-1})
     .skip(skip) // Skip N documents
     .limit(limit) // Limit to N documents
     .toArray()
   }else{
-    result = await db.collection('allMedia').find({}).sort({'_id':-1})
+    promise2 =  db.collection('allMedia').find({}).sort({'_id':-1})
     .skip(skip) // Skip N documents
     .limit(limit) // Limit to N documents
-    .toArray()  }
+    .toArray()  
+  }
+  result = await Promise.all([promise1, promise2]);
+  result = result[0]
+  console.log(`founded ${result.length} items.`)
   res.send(result)
 });
+
 router.get('/dlimg', async function(req, res) {
   const db = req.app.locals.db;
   let extractor
@@ -360,7 +366,11 @@ let search = req.query
 let elID = req.query.elID
 
 if(elID){
-    db.collection(dbName).findOne({'_id':new ObjectId(elID)}, (err, result) => {res.send(result);})
+  if(ObjectId.isValid(elID)){ 
+    db.collection(dbName).findOne({'_id':new ObjectId(elID)}, (err, result) => {
+      res.send(result);
+    })
+  }
 }
 if(so_b){
   let so_={[so_b]:so_k}
@@ -370,9 +380,13 @@ if(so_b){
       res.send(results)
     });
   }else{
-    if(so_b=='_id'){so_._id=new ObjectId(so_k)}
-    let existingItem = await db.collection(dbName).findOne(so_);
-    res.send(existingItem)
+    try {
+      if(so_b=='_id'){so_._id=new ObjectId(so_k)}
+      let existingItem = await db.collection(dbName).findOne(so_);
+      res.send(existingItem)
+    } catch (error) {
+      console.log(`Could not find the element : `,so_)
+    }
   }
 
 }
