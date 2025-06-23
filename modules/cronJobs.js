@@ -1,7 +1,4 @@
 const cronJob = require('cron').CronJob;
-const initData = require('./initData')
-const pornPics = require('./image')
-const searchSubreddits = require('./search.subreddits')
 async function cronJobs(db){
 
     var cronjob = new cronJob({

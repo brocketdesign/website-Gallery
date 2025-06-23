@@ -63,7 +63,7 @@ async function searchSubreddits(query, db) {
   } catch (err) {
     // Logging the error and rejecting the promise
     console.log(err);
-    throw err;
+    return err;
   }
 }
 

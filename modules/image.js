@@ -1,10 +1,6 @@
 const fs = require('fs');
 const cheerio = require('cheerio');
 const got = require('got');
-var Scraper = require('images-scraper');
-const google = new Scraper();
-const converter = require('json-2-csv');
-const axios = require('axios');
 const ObjectId = require('mongodb').ObjectId;
 const asnyScrap = require('./anyScrap')
 async function pornPic(option,page,extractor,db){

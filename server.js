@@ -21,7 +21,6 @@ MongoClient.connect(process.env.MONGODB_URL)
   const db = client.db('rakutest');
   console.log('DB connection SUCCESS')
   app.locals.db = db;
-  cronJobs(db)
 });
 const port = process.env.PORT || 2000
 const server = app.listen(port, () => {
